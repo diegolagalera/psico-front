@@ -1,0 +1,16 @@
+# Dependencias y build
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Variables de entorno reales
+.env
+.env.*
+!.env.example
+
+# Sistema operativo e IDE
+.DS_Store
+.vscode/
+.idea/
+*.log

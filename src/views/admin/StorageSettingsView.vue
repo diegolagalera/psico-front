@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import api from '@/services/api'
 import {
   HardDrive,
@@ -24,6 +24,7 @@ const testing = ref(false)
 const showGuide = ref(true)
 const activeStep = ref(1)
 const s3Ready = ref(false)
+const savedSnapshot = ref('')
 
 const settings = reactive({
   s3_enabled: false,
@@ -35,6 +36,10 @@ const settings = reactive({
   s3_secret_access_key: '',
   presigned_url_expiration: 1800,
 })
+
+const isDirty = computed(
+  () => Boolean(savedSnapshot.value && JSON.stringify(settings) !== savedSnapshot.value)
+)
 
 const logType = ref('success') // estado de la última prueba
 const detailedLog = ref('')
@@ -93,6 +98,7 @@ async function fetchStorageSettings() {
     if (data.settings) {
       Object.assign(settings, data.settings)
     }
+    savedSnapshot.value = JSON.stringify(settings)
     s3Ready.value = Boolean(data.s3_ready)
   } catch (err) {
     toast.error(
@@ -108,6 +114,7 @@ async function handleSaveStorage() {
   saving.value = true
   try {
     const { data } = await api.put('/admin/storage-settings', settings)
+    savedSnapshot.value = JSON.stringify(settings)
     s3Ready.value = Boolean(data.s3_ready)
     toast.success(
       data.message || 'Configuración de almacenamiento guardada.',
@@ -354,24 +361,13 @@ onMounted(() => {
           </p>
         </div>
 
-        <!-- Botones Guardar y Probar -->
+        <!-- Botón Probar Conexión -->
         <div class="flex flex-col sm:flex-row gap-3 pt-2">
-          <button
-            type="submit"
-            :disabled="saving"
-            class="flex-1 py-3.5 px-6 rounded-2xl bg-[#4A6B5D] hover:bg-[#2C3E35] disabled:opacity-60 text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
-          >
-            <Save class="w-4 h-4" />
-            <span>
-              {{ saving ? 'Guardando...' : 'Guardar Configuración S3 / R2' }}
-            </span>
-          </button>
-
           <button
             type="button"
             :disabled="testing"
             @click="handleTestS3"
-            class="py-3.5 px-6 rounded-2xl bg-[#D9826C] hover:bg-[#c56e58] disabled:opacity-60 text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            class="w-full py-3.5 px-6 rounded-2xl bg-[#D9826C] hover:bg-[#c56e58] disabled:opacity-60 text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': testing }" />
             <span>
@@ -465,11 +461,53 @@ onMounted(() => {
             <p class="leading-relaxed">
               <strong>Protección Anti-Descarga:</strong> No necesitas configurar políticas CORS
               complejas; nuestro servidor firma las subidas y genera enlaces efímeros con
-              marca de agua dinámica del alumno sobre el reproductor.
+              marca de agua fija del alumno sobre el reproductor.
             </p>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- BARRA FLOTANTE DE GUARDADO (CLOUDFLARE R2 / S3) -->
+    <Teleport to="body">
+      <div
+        v-if="isDirty"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl"
+      >
+        <div class="bg-[#24332B] text-white rounded-2xl px-5 py-3.5 shadow-2xl border border-white/15 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#D9826C] animate-pulse shrink-0"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-white truncate">
+                Cambios sin guardar en Almacenamiento S3 / R2
+              </p>
+              <p class="text-[11px] text-white/65 truncate">
+                Guarda para actualizar la conexión con el bucket
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              :disabled="saving"
+              @click="fetchStorageSettings"
+              class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/18 text-white/85 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              :disabled="saving"
+              @click="handleSaveStorage"
+              class="px-4 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+            >
+              <Save class="w-3.5 h-3.5" />
+              <span>{{ saving ? 'Guardando...' : 'Guardar Cambios' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

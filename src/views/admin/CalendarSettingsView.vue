@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import {
@@ -37,6 +37,7 @@ const hasClientCredentials = ref(false)
 const callbackUrl = ref('')
 const copiedCallback = ref(false)
 const availableCalendars = ref([])
+const savedSnapshot = ref('')
 
 const settings = reactive({
   calendar_enabled: false,
@@ -57,6 +58,10 @@ const settings = reactive({
     '6': [],
   },
 })
+
+const isDirty = computed(
+  () => Boolean(savedSnapshot.value && JSON.stringify(settings) !== savedSnapshot.value)
+)
 
 const weekdayLabels = [
   { day: '0', label: 'Lunes' },
@@ -122,6 +127,7 @@ async function fetchCalendarSettings() {
         settings.working_hours = data.settings.working_hours
       }
     }
+    savedSnapshot.value = JSON.stringify(settings)
     calendarReady.value = Boolean(data.calendar_ready)
     hasClientCredentials.value = Boolean(data.has_client_credentials)
     callbackUrl.value = data.callback_url || ''
@@ -158,14 +164,17 @@ async function handleSaveSettings() {
       booking_working_hours: settings.working_hours,
     }
     const { data } = await api.put('/admin/calendar-settings', payload)
+    savedSnapshot.value = JSON.stringify(settings)
     feedbackType.value = 'success'
     feedbackMessage.value = data.message
+    toast.success(data.message || 'Configuración de Google Calendar guardada.')
     calendarReady.value = Boolean(data.calendar_ready)
     hasClientCredentials.value = Boolean(data.has_client_credentials)
   } catch (err) {
     feedbackType.value = 'error'
     feedbackMessage.value =
       err.response?.data?.error || 'Error al guardar la configuración.'
+    toast.error(feedbackMessage.value)
   } finally {
     saving.value = false
   }
@@ -657,22 +666,13 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Botones Guardar y Probar -->
+        <!-- Botón Probar Conexión -->
         <div class="flex flex-col sm:flex-row gap-3 pt-2">
-          <button
-            type="submit"
-            :disabled="saving"
-            class="flex-1 py-3.5 px-6 rounded-2xl bg-[#4A6B5D] hover:bg-[#2C3E35] disabled:opacity-60 text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
-          >
-            <Save class="w-4 h-4" />
-            <span>{{ saving ? 'Guardando...' : 'Guardar Configuración en MySQL' }}</span>
-          </button>
-
           <button
             type="button"
             :disabled="testing"
             @click="handleTestCalendar"
-            class="py-3.5 px-6 rounded-2xl bg-[#D9826C] hover:bg-[#c56e58] disabled:opacity-60 text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            class="w-full py-3.5 px-6 rounded-2xl bg-[#D9826C] hover:bg-[#c56e58] disabled:opacity-60 text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': testing }" />
             <span>{{ testing ? 'Verificando...' : 'Probar Conexión con Calendar' }}</span>
@@ -760,5 +760,47 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
+    <!-- BARRA FLOTANTE DE GUARDADO (GOOGLE CALENDAR) -->
+    <Teleport to="body">
+      <div
+        v-if="isDirty"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl"
+      >
+        <div class="bg-[#24332B] text-white rounded-2xl px-5 py-3.5 shadow-2xl border border-white/15 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#D9826C] animate-pulse shrink-0"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-white truncate">
+                Cambios sin guardar en Google Calendar
+              </p>
+              <p class="text-[11px] text-white/65 truncate">
+                Guarda para aplicar los nuevos horarios o ajustes
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              :disabled="saving"
+              @click="fetchCalendarSettings"
+              class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/18 text-white/85 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              :disabled="saving"
+              @click="handleSaveSettings"
+              class="px-4 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+            >
+              <Save class="w-3.5 h-3.5" />
+              <span>{{ saving ? 'Guardando...' : 'Guardar Cambios' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

@@ -183,26 +183,26 @@ function prefillSituation(text) {
          1. HEADER / NAVBAR
          ===================================================== -->
     <header
-      class="sticky top-0 z-50 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#2C3E35]/10"
+      class="sticky top-0 z-50 w-full bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#2C3E35]/10"
     >
       <div
-        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between"
+        class="w-full px-5 sm:px-8 lg:px-12 xl:px-16 h-20 flex items-center justify-between gap-4 xl:gap-8"
       >
         <!-- Logo Elegante -->
-        <a href="#" class="flex items-center gap-3 group">
+        <a href="#" class="flex items-center gap-3 group shrink-0 whitespace-nowrap">
           <div
-            class="w-11 h-11 rounded-2xl bg-[#4A6B5D] text-[#FAF8F5] flex items-center justify-center shadow-sm group-hover:bg-[#2C3E35] transition-colors"
+            class="w-11 h-11 rounded-2xl bg-[#4A6B5D] text-[#FAF8F5] flex items-center justify-center shadow-sm group-hover:bg-[#2C3E35] transition-colors shrink-0"
           >
             <Feather class="w-5 h-5" />
           </div>
-          <div>
+          <div class="whitespace-nowrap">
             <span
               class="font-editorial text-2xl font-semibold tracking-tight text-[#2C3E35] block leading-none"
             >
               Vuelve a Ti
             </span>
             <span
-              class="text-[11px] uppercase tracking-[0.18em] text-[#4A6B5D] font-medium block mt-1"
+              class="text-[10px] uppercase tracking-[0.18em] text-[#4A6B5D] font-semibold block mt-1 whitespace-nowrap"
             >
               Psicología & Duelo Afectivo
             </span>
@@ -210,46 +210,53 @@ function prefillSituation(text) {
         </a>
 
         <!-- Navegación Desktop -->
-        <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+        <nav class="hidden lg:flex items-center gap-5 xl:gap-8 text-sm font-medium">
           <a
             href="#puntos-dolor"
-            class="text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
+            class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
             ¿Te identificas?
           </a>
           <a
             href="#el-programa"
-            class="text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
+            class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
             El Programa
           </a>
           <a
             href="#sobre-mi"
-            class="text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
+            class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
             Sobre Mí
           </a>
           <a
             href="#garantia"
-            class="text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
+            class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
             Garantía / Enfoque
           </a>
+          <RouterLink
+            to="/recursos"
+            class="whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#D9826C]/12 text-[#D9826C] font-semibold hover:bg-[#D9826C]/20 transition-colors"
+          >
+            <Sparkles class="w-3.5 h-3.5 shrink-0" />
+            <span>Recursos Gratuitos</span>
+          </RouterLink>
         </nav>
 
         <!-- Acciones Derecha -->
-        <div class="hidden md:flex items-center gap-3">
+        <div class="hidden lg:flex items-center gap-3 shrink-0">
           <RouterLink
             :to="
               authStore.isAuthenticated
                 ? authStore.isAdmin
-                  ? '/admin/email-settings'
+                  ? '/admin/courses'
                   : '/dashboard'
                 : '/login'
             "
-            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-medium text-[#4A6B5D] hover:bg-[#4A6B5D]/10 transition-colors"
+            class="whitespace-nowrap inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-medium text-[#4A6B5D] hover:bg-[#4A6B5D]/10 transition-colors"
           >
-            <Lock class="w-4 h-4" />
+            <Lock class="w-4 h-4 shrink-0" />
             <span>{{
               authStore.isAuthenticated ? 'Mi Portal' : 'Acceso Alumnos'
             }}</span>
@@ -257,9 +264,9 @@ function prefillSituation(text) {
 
           <a
             href="#contacto"
-            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold bg-[#D9826C] text-white shadow-sm hover:bg-[#c56e58] transition-all hover:shadow"
+            class="whitespace-nowrap inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold bg-[#D9826C] text-white shadow-sm hover:bg-[#c56e58] transition-all hover:shadow"
           >
-            <Calendar class="w-4 h-4" />
+            <Calendar class="w-4 h-4 shrink-0" />
             <span>Reservar Sesión</span>
           </a>
         </div>
@@ -267,7 +274,7 @@ function prefillSituation(text) {
         <!-- Botón Menú Móvil -->
         <button
           type="button"
-          class="md:hidden p-2.5 rounded-xl text-[#2C3E35] hover:bg-[#4A6B5D]/10"
+          class="lg:hidden p-2.5 rounded-xl text-[#2C3E35] hover:bg-[#4A6B5D]/10"
           @click="mobileMenuOpen = !mobileMenuOpen"
           aria-label="Abrir menú"
         >
@@ -279,7 +286,7 @@ function prefillSituation(text) {
       <!-- Menú Desplegable Móvil -->
       <div
         v-if="mobileMenuOpen"
-        class="md:hidden bg-[#FAF8F5] border-b border-[#2C3E35]/10 px-6 py-5 space-y-3"
+        class="lg:hidden bg-[#FAF8F5] border-b border-[#2C3E35]/10 px-6 py-5 space-y-3"
       >
         <a
           href="#puntos-dolor"
@@ -309,6 +316,14 @@ function prefillSituation(text) {
         >
           Garantía / Enfoque
         </a>
+        <RouterLink
+          to="/recursos"
+          @click="mobileMenuOpen = false"
+          class="flex items-center gap-2 py-2 text-base font-semibold text-[#D9826C]"
+        >
+          <Sparkles class="w-4 h-4" />
+          <span>Foro de Recursos Gratuitos</span>
+        </RouterLink>
         <div class="pt-3 border-t border-[#2C3E35]/10 flex flex-col gap-2.5">
           <RouterLink
             to="/login"

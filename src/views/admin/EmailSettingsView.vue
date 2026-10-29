@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import api from '@/services/api'
 import {
   Mail,
@@ -23,6 +23,7 @@ const saving = ref(false)
 const testing = ref(false)
 const showGuide = ref(true)
 const activeStep = ref(1)
+const savedSnapshot = ref('')
 
 const settings = reactive({
   smtp_host: 'smtp.gmail.com',
@@ -32,6 +33,10 @@ const settings = reactive({
   use_gmail_api: false,
   gmail_token_json: '',
 })
+
+const isDirty = computed(
+  () => Boolean(savedSnapshot.value && JSON.stringify(settings) !== savedSnapshot.value)
+)
 
 const testRecipient = ref('')
 const logType = ref('success') // 'success' | 'error' (estado de la última prueba)
@@ -103,6 +108,7 @@ async function fetchSettings() {
         testRecipient.value = data.settings.smtp_user
       }
     }
+    savedSnapshot.value = JSON.stringify(settings)
   } catch (err) {
     toast.error(
       err.response?.data?.error ||
@@ -117,6 +123,7 @@ async function handleSaveSettings() {
   saving.value = true
   try {
     const { data } = await api.put('/admin/email-settings', settings)
+    savedSnapshot.value = JSON.stringify(settings)
     toast.success(
       data.message || 'Configuración de correo guardada correctamente.',
       { title: 'Configuración guardada' }
@@ -331,24 +338,6 @@ onMounted(() => {
           ></textarea>
         </div>
 
-        <!-- Botón Guardar -->
-        <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <button
-            type="submit"
-            :disabled="saving"
-            class="flex-1 py-3.5 px-6 rounded-2xl bg-[#4A6B5D] hover:bg-[#2C3E35] disabled:opacity-60 text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer"
-          >
-            <Save class="w-4 h-4" />
-            <span>
-              {{
-                saving
-                  ? 'Guardando en Base de Datos...'
-                  : 'Guardar Configuración en MySQL'
-              }}
-            </span>
-          </button>
-        </div>
-
         <!-- Sección Probar Conexión de Correo -->
         <div
           class="p-5 rounded-2xl bg-[#FAF8F5] border border-[#D9826C]/30 space-y-3"
@@ -477,5 +466,47 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- BARRA FLOTANTE DE GUARDADO (CORREO / GMAIL API) -->
+    <Teleport to="body">
+      <div
+        v-if="isDirty"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl"
+      >
+        <div class="bg-[#24332B] text-white rounded-2xl px-5 py-3.5 shadow-2xl border border-white/15 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#D9826C] animate-pulse shrink-0"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-white truncate">
+                Cambios sin guardar en Correo Electrónico
+              </p>
+              <p class="text-[11px] text-white/65 truncate">
+                Guarda para actualizar las credenciales SMTP / Gmail API
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              :disabled="saving"
+              @click="fetchSettings"
+              class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/18 text-white/85 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              :disabled="saving"
+              @click="handleSaveSettings"
+              class="px-4 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+            >
+              <Save class="w-3.5 h-3.5" />
+              <span>{{ saving ? 'Guardando...' : 'Guardar Cambios' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

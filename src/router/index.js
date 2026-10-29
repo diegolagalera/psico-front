@@ -4,8 +4,10 @@ import { useAuthStore } from '@/stores/auth'
 import LandingView from '@/views/LandingView.vue'
 import LoginView from '@/views/LoginView.vue'
 import UserDashboardView from '@/views/UserDashboardView.vue'
+import ResourcesHubView from '@/views/ResourcesHubView.vue'
 import AdminLayout from '@/views/admin/AdminLayout.vue'
 import CoursesManagementView from '@/views/admin/CoursesManagementView.vue'
+import ResourcesManagementView from '@/views/admin/ResourcesManagementView.vue'
 import StorageSettingsView from '@/views/admin/StorageSettingsView.vue'
 import CalendarSettingsView from '@/views/admin/CalendarSettingsView.vue'
 import EmailSettingsView from '@/views/admin/EmailSettingsView.vue'
@@ -18,6 +20,18 @@ const routes = [
     name: 'landing',
     component: LandingView,
     meta: { title: 'Vuelve a Ti · Psicología y Reconstrucción Personal' },
+  },
+  {
+    path: '/recursos',
+    name: 'resources-hub',
+    component: ResourcesHubView,
+    meta: { title: 'Foro de Recursos Gratuitos · Vuelve a Ti' },
+  },
+  {
+    path: '/recursos/:slug',
+    name: 'resource-detail',
+    component: ResourcesHubView,
+    meta: { title: 'Recurso Terapéutico · Vuelve a Ti' },
   },
   {
     path: '/login',
@@ -51,6 +65,16 @@ const routes = [
           requiresAuth: true,
           requiresAdmin: true,
           title: 'Cursos, Cronogramas y Progreso · Admin Vuelve a Ti',
+        },
+      },
+      {
+        path: 'resources',
+        name: 'admin-resources',
+        component: ResourcesManagementView,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: 'Foro de Recursos & Captación de Emails · Admin Vuelve a Ti',
         },
       },
       {

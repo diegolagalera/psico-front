@@ -179,6 +179,102 @@ function switchTab(tabKey) {
   }
 }
 
+// Snapshots para detectar cambios sin guardar de forma reactiva
+const savedCourseSnapshot = ref('')
+const savedModulesSnapshot = ref({})
+const savedLessonsSnapshot = ref({})
+
+function captureCleanSnapshots() {
+  const c = selectedCourse.value
+  if (!c) {
+    savedCourseSnapshot.value = ''
+    savedModulesSnapshot.value = {}
+    savedLessonsSnapshot.value = {}
+    return
+  }
+  savedCourseSnapshot.value = JSON.stringify(courseForm)
+  const modMap = {}
+  const lesMap = {}
+  for (const mod of c.modules || []) {
+    modMap[mod.id] = JSON.stringify({
+      title: mod.title || '',
+      subtitle: mod.subtitle || '',
+      order_index: mod.order_index,
+    })
+    for (const les of mod.lessons || []) {
+      lesMap[les.id] = JSON.stringify({
+        title: les.title || '',
+        description: les.description || '',
+        order_index: les.order_index,
+        booking_enabled: Boolean(les.booking_enabled),
+      })
+    }
+  }
+  savedModulesSnapshot.value = modMap
+  savedLessonsSnapshot.value = lesMap
+}
+
+const isCourseDirty = computed(() => {
+  if (!selectedCourse.value || !savedCourseSnapshot.value) return false
+  return JSON.stringify(courseForm) !== savedCourseSnapshot.value
+})
+
+const dirtyModules = computed(() => {
+  if (!selectedCourse.value?.modules) return []
+  return selectedCourse.value.modules.filter((m) => {
+    const snap = savedModulesSnapshot.value[m.id]
+    if (!snap) return false
+    return (
+      JSON.stringify({
+        title: m.title || '',
+        subtitle: m.subtitle || '',
+        order_index: m.order_index,
+      }) !== snap
+    )
+  })
+})
+
+const dirtyLessons = computed(() => {
+  if (!selectedCourse.value?.modules) return []
+  const list = []
+  for (const m of selectedCourse.value.modules) {
+    for (const l of m.lessons || []) {
+      const snap = savedLessonsSnapshot.value[l.id]
+      if (!snap) continue
+      if (
+        JSON.stringify({
+          title: l.title || '',
+          description: l.description || '',
+          order_index: l.order_index,
+          booking_enabled: Boolean(l.booking_enabled),
+        }) !== snap
+      ) {
+        list.push(l)
+      }
+    }
+  }
+  return list
+})
+
+const hasUnsavedChanges = computed(
+  () =>
+    isCourseDirty.value ||
+    dirtyModules.value.length > 0 ||
+    dirtyLessons.value.length > 0
+)
+
+const unsavedSummaryText = computed(() => {
+  const parts = []
+  if (isCourseDirty.value) parts.push('ajustes del curso')
+  if (dirtyModules.value.length === 1) parts.push('1 módulo')
+  else if (dirtyModules.value.length > 1)
+    parts.push(`${dirtyModules.value.length} módulos`)
+  if (dirtyLessons.value.length === 1) parts.push('1 clase')
+  else if (dirtyLessons.value.length > 1)
+    parts.push(`${dirtyLessons.value.length} clases`)
+  return parts.join(', ')
+})
+
 function syncCourseFormFromSelected() {
   const c = selectedCourse.value
   if (!c) return
@@ -211,10 +307,13 @@ function syncCourseFormFromSelected() {
       }
     }
   }
+  captureCleanSnapshots()
 }
 
-async function fetchCourses() {
-  loading.value = true
+async function fetchCourses({ silent = false } = {}) {
+  if (!silent) {
+    loading.value = true
+  }
   try {
     const { data } = await api.get('/admin/courses')
     courses.value = data.courses || []
@@ -226,13 +325,15 @@ async function fetchCourses() {
       selectedCourseId.value = courses.value[0].id
     }
     syncCourseFormFromSelected()
-    if (activeTab.value === 'students' && selectedCourseId.value) {
+    if (activeTab.value === 'students' && selectedCourseId.value && !silent) {
       await fetchStudentsProgress()
     }
   } catch (err) {
     notify(err.response?.data?.error || 'Error al cargar los cursos.', 'error')
   } finally {
-    loading.value = false
+    if (!silent) {
+      loading.value = false
+    }
   }
 }
 
@@ -263,7 +364,7 @@ async function handleCreateCourse() {
     newCourseForm.title = ''
     newCourseForm.subtitle = ''
     newCourseForm.description = ''
-    await fetchCourses()
+    await fetchCourses({ silent: true })
     if (data.course?.id) {
       handleSelectCourse(data.course.id)
     }
@@ -272,21 +373,69 @@ async function handleCreateCourse() {
   }
 }
 
-async function handleSaveCourseSettings() {
-  if (!selectedCourseId.value) return
+async function handleSaveAllChanges() {
+  if (!selectedCourseId.value || !hasUnsavedChanges.value) return
   savingCourse.value = true
   try {
-    const { data } = await api.put(
-      `/admin/courses/${selectedCourseId.value}`,
-      courseForm
-    )
-    notify(data.message || 'Configuración guardada correctamente.')
-    await fetchCourses()
+    const promises = []
+
+    if (isCourseDirty.value) {
+      promises.push(
+        api.put(`/admin/courses/${selectedCourseId.value}`, courseForm)
+      )
+    }
+
+    for (const mod of dirtyModules.value) {
+      promises.push(
+        api.put(`/admin/modules/${mod.id}`, {
+          title: mod.title,
+          subtitle: mod.subtitle,
+          order_index: mod.order_index,
+        })
+      )
+    }
+
+    for (const lesson of dirtyLessons.value) {
+      promises.push(
+        api.put(`/admin/lessons/${lesson.id}`, {
+          title: lesson.title,
+          description: lesson.description,
+          order_index: lesson.order_index,
+          video_duration_seconds: lesson.video_duration_seconds,
+          booking_enabled: Boolean(lesson.booking_enabled),
+        })
+      )
+    }
+
+    await Promise.all(promises)
+    if (selectedCourse.value && isCourseDirty.value) {
+      selectedCourse.value.title = courseForm.title
+      selectedCourse.value.subtitle = courseForm.subtitle
+      selectedCourse.value.description = courseForm.description
+      selectedCourse.value.is_active = courseForm.is_active
+      selectedCourse.value.drip_mode = courseForm.drip_mode
+      selectedCourse.value.drip_weekdays_list = [...courseForm.drip_weekdays]
+      selectedCourse.value.drip_interval_days = courseForm.drip_interval_days
+    }
+    captureCleanSnapshots()
+    notify('Cambios guardados correctamente.')
   } catch (err) {
-    notify(err.response?.data?.error || 'Error al guardar ajustes.', 'error')
+    notify(
+      err.response?.data?.error || 'Error al guardar los cambios.',
+      'error'
+    )
   } finally {
     savingCourse.value = false
   }
+}
+
+async function handleDiscardAllChanges() {
+  await fetchCourses({ silent: true })
+  notify('Cambios descartados.', 'info')
+}
+
+async function handleSaveCourseSettings() {
+  await handleSaveAllChanges()
 }
 
 async function handleDeleteCourse() {
@@ -301,7 +450,7 @@ async function handleDeleteCourse() {
     await api.delete(`/admin/courses/${selectedCourse.value.id}`)
     notify('Curso eliminado con éxito.')
     selectedCourseId.value = null
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify(err.response?.data?.error || 'No se pudo eliminar el curso.', 'error')
   }
@@ -319,7 +468,7 @@ async function handleCreateModule() {
     newModuleForm.title = ''
     newModuleForm.subtitle = ''
     showNewModuleModal.value = false
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify(err.response?.data?.error || 'Error al crear módulo.', 'error')
   }
@@ -333,7 +482,7 @@ async function handleUpdateModule(mod) {
       order_index: mod.order_index,
     })
     notify(data.message)
-    await fetchCourses()
+    captureCleanSnapshots()
   } catch (err) {
     notify(err.response?.data?.error || 'Error al actualizar módulo.', 'error')
   }
@@ -344,7 +493,7 @@ async function handleDeleteModule(mod) {
   try {
     const { data } = await api.delete(`/admin/modules/${mod.id}`)
     notify(data.message)
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify(err.response?.data?.error || 'Error al eliminar módulo.', 'error')
   }
@@ -363,7 +512,7 @@ async function handleCreateLesson(moduleId) {
     form.title = ''
     form.description = ''
     form.open = false
-    await fetchCourses()
+    await fetchCourses({ silent: true })
     if (data.lesson?.id) {
       expandedLessons[data.lesson.id] = true
     }
@@ -382,7 +531,7 @@ async function handleUpdateLessonMeta(lesson) {
       booking_enabled: Boolean(lesson.booking_enabled),
     })
     notify(data.message)
-    await fetchCourses()
+    captureCleanSnapshots()
   } catch (err) {
     notify(err.response?.data?.error || 'Error al guardar la clase.', 'error')
   }
@@ -393,7 +542,7 @@ async function handleDeleteLesson(lesson) {
   try {
     const { data } = await api.delete(`/admin/lessons/${lesson.id}`)
     notify(data.message)
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify(err.response?.data?.error || 'Error al eliminar la clase.', 'error')
   }
@@ -457,7 +606,7 @@ async function handleUploadLessonVideo(lesson, event) {
     })
 
     notify(`Vídeo "${media.original_filename}" vinculado con éxito.`)
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify(err.response?.data?.error || 'Error al subir el vídeo.', 'error')
   } finally {
@@ -474,7 +623,7 @@ async function handleRemoveLessonVideo(lesson) {
       video_object_key: '',
     })
     notify('Vídeo desvinculado.')
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify('No se pudo quitar el vídeo.', 'error')
   }
@@ -574,7 +723,7 @@ async function handleAddResource(lesson) {
     form.title = ''
     form.file = null
     form.open = false
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify(err.response?.data?.error || 'Error al subir el cuaderno.', 'error')
   } finally {
@@ -587,7 +736,7 @@ async function handleDeleteResource(res) {
   try {
     await api.delete(`/admin/resources/${res.id}`)
     notify('Recurso eliminado.')
-    await fetchCourses()
+    await fetchCourses({ silent: true })
   } catch (err) {
     notify('No se pudo eliminar el recurso.', 'error')
   }
@@ -915,14 +1064,6 @@ onMounted(() => {
             <div class="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                @click="handleUpdateModule(mod)"
-                class="px-3.5 py-2 rounded-xl bg-[#4A6B5D] hover:bg-[#3d594d] text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <Save class="w-3.5 h-3.5" />
-                <span>Guardar Módulo</span>
-              </button>
-              <button
-                type="button"
                 @click="handleDeleteModule(mod)"
                 class="p-2 rounded-xl bg-white/10 hover:bg-rose-500 text-white transition-colors cursor-pointer"
                 title="Eliminar Módulo"
@@ -1067,17 +1208,6 @@ onMounted(() => {
                     v-model="lesson.booking_enabled"
                     class="w-5 h-5 accent-[#4A6B5D] rounded cursor-pointer"
                   />
-                </div>
-
-                <div class="flex justify-end">
-                  <button
-                    type="button"
-                    @click="handleUpdateLessonMeta(lesson)"
-                    class="px-4 py-2 rounded-xl bg-[#4A6B5D] hover:bg-[#3d594d] text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Save class="w-3.5 h-3.5" />
-                    <span>Guardar Datos de la Clase</span>
-                  </button>
                 </div>
 
                 <!-- Bloque C: Dos Columnas de Contenido Multimedia -->
@@ -1307,14 +1437,6 @@ onMounted(() => {
               Datos Generales del Programa
             </h3>
           </div>
-          <button
-            type="submit"
-            :disabled="savingCourse"
-            class="px-5 py-2.5 rounded-2xl bg-[#4A6B5D] hover:bg-[#3d594d] text-white text-xs font-bold inline-flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
-          >
-            <Save class="w-4 h-4" />
-            <span>{{ savingCourse ? 'Guardando...' : 'Guardar Cambios' }}</span>
-          </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1378,14 +1500,6 @@ onMounted(() => {
               Define en qué orden y con qué cadencia temporal los alumnos acceden a cada lección.
             </p>
           </div>
-          <button
-            type="submit"
-            :disabled="savingCourse"
-            class="px-5 py-2.5 rounded-2xl bg-[#4A6B5D] hover:bg-[#3d594d] text-white text-xs font-bold inline-flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
-          >
-            <Save class="w-4 h-4" />
-            <span>Guardar Reglas</span>
-          </button>
         </div>
 
         <!-- 3 Modos Explicados con Tarjetas Limpias -->
@@ -1931,6 +2045,48 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- BARRA FLOTANTE UNIFICADA DE GUARDADO REACTIVO -->
+    <Teleport to="body">
+      <div
+        v-if="hasUnsavedChanges"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl animate-fadeIn"
+      >
+        <div class="bg-[#24332B] text-white rounded-2xl px-5 py-3.5 shadow-2xl border border-white/15 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#D9826C] animate-pulse shrink-0"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-white truncate">
+                Tienes cambios sin guardar
+              </p>
+              <p class="text-[11px] text-white/65 truncate">
+                Modificado: {{ unsavedSummaryText }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              :disabled="savingCourse"
+              @click="handleDiscardAllChanges"
+              class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/18 text-white/85 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Descartar
+            </button>
+            <button
+              type="button"
+              :disabled="savingCourse"
+              @click="handleSaveAllChanges"
+              class="px-4 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+            >
+              <Save class="w-3.5 h-3.5" />
+              <span>{{ savingCourse ? 'Guardando...' : 'Guardar Cambios' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 

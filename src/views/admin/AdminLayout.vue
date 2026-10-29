@@ -29,6 +29,12 @@ const navSections = [
     icon: BookOpen,
   },
   {
+    name: 'Foro de Recursos & Leads',
+    subtitle: 'Reels, PDFs y Email Marketing',
+    to: '/admin/resources',
+    icon: Sparkles,
+  },
+  {
     name: 'Alumnos y Progreso',
     subtitle: 'Expedientes y matrículas',
     to: '/admin/users',

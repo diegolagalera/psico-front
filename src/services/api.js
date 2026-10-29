@@ -10,7 +10,10 @@ const getBaseURL = () => {
     if (port === '5173') {
       return `${protocol}//${hostname}:5001/api`
     }
-    // En producción (puerto 80, 443 o proxy inverso)
+    if (hostname.includes('carlaviladotpsicologia.com')) {
+      return 'https://api.carlaviladotpsicologia.com/api'
+    }
+    // En producción con proxy inverso local
     return '/api'
   }
   return 'http://localhost:5001/api'

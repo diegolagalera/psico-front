@@ -629,6 +629,33 @@ async function handleRemoveLessonVideo(lesson) {
   }
 }
 
+function detectResourceType(file) {
+  if (!file) return 'pdf'
+  const ext = file.name.split('.').pop()?.toLowerCase() || ''
+  const mime = (file.type || '').toLowerCase()
+  if (
+    ['mp3', 'wav', 'm4a', 'ogg', 'aac', 'flac', 'webm'].includes(ext) ||
+    mime.startsWith('audio/')
+  ) {
+    return 'audio'
+  }
+  if (
+    ['doc', 'docx', 'odt', 'rtf'].includes(ext) ||
+    mime.includes('word') ||
+    mime.includes('opendocument.text')
+  ) {
+    return 'word'
+  }
+  if (
+    ['ppt', 'pptx', 'key', 'odp'].includes(ext) ||
+    mime.includes('presentation') ||
+    mime.includes('powerpoint')
+  ) {
+    return 'presentation'
+  }
+  return 'pdf'
+}
+
 function handleSelectResourceFile(lessonId, event) {
   const file = event.target.files?.[0]
   if (!file) return
@@ -642,13 +669,9 @@ function handleSelectResourceFile(lessonId, event) {
   }
   newResourceForms[lessonId].file = file
   if (!newResourceForms[lessonId].title) {
-    newResourceForms[lessonId].title = file.name
+    newResourceForms[lessonId].title = file.name.replace(/\.[^/.]+$/, '')
   }
-  const ext = file.name.split('.').pop()?.toLowerCase() || ''
-  if (['doc', 'docx'].includes(ext)) newResourceForms[lessonId].resource_type = 'word'
-  else if (['ppt', 'pptx', 'key'].includes(ext)) newResourceForms[lessonId].resource_type = 'presentation'
-  else if (['mp3', 'wav', 'm4a', 'ogg', 'aac'].includes(ext)) newResourceForms[lessonId].resource_type = 'audio'
-  else newResourceForms[lessonId].resource_type = 'pdf'
+  newResourceForms[lessonId].resource_type = detectResourceType(file)
 }
 
 const adminPreviewModal = ref({
@@ -1314,28 +1337,30 @@ onMounted(() => {
 
                     <!-- Añadir cuaderno -->
                     <div v-if="newResourceForms[lesson.id]" class="pt-3 border-t border-[#2C3E35]/10 space-y-2.5">
-                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div class="flex items-center gap-2">
                         <input
                           v-model="newResourceForms[lesson.id].title"
                           type="text"
-                          placeholder="Título del cuaderno (ej. Cuaderno 1)"
-                          class="sm:col-span-2 px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/15 text-xs"
+                          placeholder="Título del recurso (ej. Cuaderno 1 o Audio de regulación)"
+                          class="w-full px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/15 text-xs"
                         />
-                        <select
-                          v-model="newResourceForms[lesson.id].resource_type"
-                          class="px-2.5 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/15 text-xs"
+                        <span
+                          v-if="newResourceForms[lesson.id].file"
+                          class="px-2.5 py-1 rounded-lg bg-[#4A6B5D]/10 text-[#4A6B5D] text-[10px] font-bold uppercase shrink-0"
                         >
-                          <option value="pdf">PDF Ejercicios</option>
-                          <option value="presentation">Presentación</option>
-                          <option value="word">Documento</option>
-                          <option value="audio">Audio Meditación</option>
-                        </select>
+                          {{ newResourceForms[lesson.id].resource_type }}
+                        </span>
                       </div>
 
                       <div class="flex items-center justify-between gap-2">
-                        <label class="px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/20 text-xs font-medium cursor-pointer hover:bg-black/5 truncate max-w-[200px]">
-                          <span>{{ newResourceForms[lesson.id].file ? newResourceForms[lesson.id].file.name : 'Seleccionar PDF/Audio...' }}</span>
-                          <input type="file" class="hidden" @change="handleSelectResourceFile(lesson.id, $event)" />
+                        <label class="px-3 py-1.5 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/20 text-xs font-medium cursor-pointer hover:bg-black/5 truncate max-w-[220px]">
+                          <span>{{ newResourceForms[lesson.id].file ? newResourceForms[lesson.id].file.name : 'Seleccionar PDF, Word o Audio...' }}</span>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.odt,.rtf,.ppt,.pptx,.mp3,.wav,.m4a,.ogg,.aac,application/pdf,audio/*"
+                            class="hidden"
+                            @change="handleSelectResourceFile(lesson.id, $event)"
+                          />
                         </label>
                         <button
                           type="button"

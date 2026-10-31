@@ -1355,8 +1355,8 @@ onMounted(() => {
                           <Headphones v-if="isAudioResource(res)" class="w-5 h-5" />
                           <FileText v-else class="w-5 h-5" />
                         </div>
-                        <div class="min-w-0">
-                          <div class="flex items-center gap-2">
+                        <div class="min-w-0 flex items-center">
+                          <div class="flex items-center gap-2 min-w-0">
                             <p class="font-semibold text-sm text-[#2C3E35] truncate">{{ res.title }}</p>
                             <span
                               v-if="res.downloaded"
@@ -1365,10 +1365,6 @@ onMounted(() => {
                               Visto ✓
                             </span>
                           </div>
-                          <p class="text-xs text-[#2C3E35]/60 mt-0.5">
-                            {{ resourceTypeLabel(res.resource_type) }}
-                            <span v-if="res.file_size_bytes">· {{ formatBytes(res.file_size_bytes) }}</span>
-                          </p>
                         </div>
                       </div>
                     </div>
@@ -1496,11 +1492,6 @@ onMounted(() => {
                 <FileText v-else class="w-5 h-5" />
               </div>
               <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-[#4A6B5D]">
-                    {{ resourceTypeLabel(previewModal.resource?.resource_type) }}
-                  </span>
-                </div>
                 <h3 class="font-editorial text-lg sm:text-xl font-semibold text-[#2C3E35] truncate">
                   {{ previewModal.resource?.title }}
                 </h3>

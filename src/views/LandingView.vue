@@ -38,6 +38,7 @@ import {
   Video,
   ChevronLeft,
   ChevronRight,
+  Instagram,
 } from 'lucide-vue-next'
 import { toast } from '@/composables/useToast'
 
@@ -265,11 +266,26 @@ async function handleContactSubmit() {
   }
 }
 
-function prefillSituation(text) {
-  contactForm.message = `Me identifico mucho con: "${text}".`
-  const el = document.getElementById('contacto')
-  if (el) el.scrollIntoView({ behavior: 'smooth' })
-  openValuationModal()
+const feelingsOptions = [
+  { id: 'vueltas', emoji: '🧠', text: 'Le doy mil vueltas a la relación' },
+  { id: 'verguenza', emoji: '😶‍🌫️', text: 'Siento vergüenza por no avanzar' },
+  { id: 'incertidumbre', emoji: '🌫️', text: 'Veo mi futuro con incertidumbre' },
+  { id: 'identidad', emoji: '📉', text: 'Siento que he perdido mi identidad' },
+]
+
+const selectedFeelings = ref([])
+
+function toggleFeeling(id) {
+  const index = selectedFeelings.value.indexOf(id)
+  if (index > -1) {
+    selectedFeelings.value.splice(index, 1)
+  } else {
+    selectedFeelings.value.push(id)
+  }
+}
+
+function openCookieSettingsModal() {
+  window.dispatchEvent(new CustomEvent('open-cookie-settings'))
 }
 </script>
 
@@ -291,45 +307,38 @@ function prefillSituation(text) {
           >
             <Feather class="w-5 h-5" />
           </div>
-          <div class="whitespace-nowrap">
-            <span
-              class="font-editorial text-2xl font-semibold tracking-tight text-[#2C3E35] block leading-none"
-            >
-              Vuelve a Ti
-            </span>
-            <span
-              class="text-[10px] uppercase tracking-[0.18em] text-[#4A6B5D] font-semibold block mt-1 whitespace-nowrap"
-            >
-              Psicología & Duelo Afectivo
-            </span>
-          </div>
+          <span
+            class="font-editorial text-2xl font-semibold tracking-tight text-[#2C3E35] block leading-none"
+          >
+            Vuelve a Ti
+          </span>
         </a>
 
         <!-- Navegación Desktop -->
-        <nav class="hidden lg:flex items-center gap-5 xl:gap-8 text-sm font-medium">
+        <nav class="hidden lg:flex items-center gap-5 xl:gap-7 text-sm font-medium">
           <a
-            href="#puntos-dolor"
+            href="#"
             class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
-            ¿Te identificas?
+            Inicio
           </a>
           <a
             href="#el-programa"
             class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
-            El Programa
+            Programa
           </a>
           <a
             href="#sobre-mi"
             class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
-            Sobre Mí
+            Sobre mí
           </a>
           <a
-            href="#garantia"
+            href="#contacto"
             class="whitespace-nowrap text-[#2C3E35]/80 hover:text-[#4A6B5D] transition-colors"
           >
-            Garantía / Enfoque
+            Contacto
           </a>
           <RouterLink
             to="/recursos"
@@ -385,32 +394,32 @@ function prefillSituation(text) {
         class="lg:hidden bg-[#FAF8F5] border-b border-[#2C3E35]/10 px-6 py-5 space-y-3"
       >
         <a
-          href="#puntos-dolor"
+          href="#"
           @click="mobileMenuOpen = false"
           class="block py-2 text-base font-medium text-[#2C3E35]"
         >
-          ¿Te identificas?
+          Inicio
         </a>
         <a
           href="#el-programa"
           @click="mobileMenuOpen = false"
           class="block py-2 text-base font-medium text-[#2C3E35]"
         >
-          El Programa
+          Programa
         </a>
         <a
           href="#sobre-mi"
           @click="mobileMenuOpen = false"
           class="block py-2 text-base font-medium text-[#2C3E35]"
         >
-          Sobre Mí
+          Sobre mí
         </a>
         <a
-          href="#garantia"
+          href="#contacto"
           @click="mobileMenuOpen = false"
           class="block py-2 text-base font-medium text-[#2C3E35]"
         >
-          Garantía / Enfoque
+          Contacto
         </a>
         <RouterLink
           to="/recursos"
@@ -418,7 +427,7 @@ function prefillSituation(text) {
           class="flex items-center gap-2 py-2 text-base font-semibold text-[#D9826C]"
         >
           <Sparkles class="w-4 h-4" />
-          <span>Foro de Recursos Gratuitos</span>
+          <span>Recursos Gratuitos</span>
         </RouterLink>
         <div class="pt-3 border-t border-[#2C3E35]/10 flex flex-col gap-2.5">
           <RouterLink
@@ -507,32 +516,18 @@ function prefillSituation(text) {
               </p>
               <div class="flex flex-wrap gap-2.5">
                 <button
+                  v-for="item in feelingsOptions"
+                  :key="item.id"
                   type="button"
-                  @click="prefillSituation('Le doy mil vueltas a la relación')"
-                  class="text-xs px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-[#D9826C]/15 hover:text-[#2C3E35] border border-[#2C3E35]/10 transition-colors cursor-pointer"
+                  @click="toggleFeeling(item.id)"
+                  class="text-xs px-4 py-2.5 rounded-xl border transition-all duration-200 cursor-pointer select-none active:scale-95"
+                  :class="
+                    selectedFeelings.includes(item.id)
+                      ? 'bg-[#D9826C] text-white border-[#D9826C] shadow-sm font-medium'
+                      : 'bg-[#FAF8F5] text-[#2C3E35] border-[#2C3E35]/10 hover:bg-[#D9826C]/10 hover:border-[#D9826C]/30'
+                  "
                 >
-                  🧠 Le doy mil vueltas a la relación
-                </button>
-                <button
-                  type="button"
-                  @click="prefillSituation('Siento vergüenza por no avanzar')"
-                  class="text-xs px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-[#D9826C]/15 hover:text-[#2C3E35] border border-[#2C3E35]/10 transition-colors cursor-pointer"
-                >
-                  😶‍🌫️ Siento vergüenza por no avanzar
-                </button>
-                <button
-                  type="button"
-                  @click="prefillSituation('Veo mi futuro con incertidumbre')"
-                  class="text-xs px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-[#D9826C]/15 hover:text-[#2C3E35] border border-[#2C3E35]/10 transition-colors cursor-pointer"
-                >
-                  🌫️ Veo mi futuro con incertidumbre
-                </button>
-                <button
-                  type="button"
-                  @click="prefillSituation('Siento que he perdido mi identidad')"
-                  class="text-xs px-4 py-2.5 rounded-xl bg-[#FAF8F5] hover:bg-[#D9826C]/15 hover:text-[#2C3E35] border border-[#2C3E35]/10 transition-colors cursor-pointer"
-                >
-                  📉 Siento que he perdido mi identidad
+                  {{ item.emoji }} {{ item.text }}
                 </button>
               </div>
             </div>
@@ -540,7 +535,7 @@ function prefillSituation(text) {
 
           <!-- Columna Derecha: Retrato Profesional de la Psicóloga -->
           <div class="lg:col-span-5">
-            <div class="relative mx-auto max-w-md lg:max-w-none">
+            <div class="relative mx-auto max-w-md lg:max-w-none pb-6 sm:pb-0">
               <div
                 class="rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-[#E8E2D9] aspect-[4/5] relative"
               >
@@ -552,29 +547,29 @@ function prefillSituation(text) {
                 <div
                   class="absolute inset-0 bg-gradient-to-t from-[#2C3E35]/70 via-transparent to-transparent"
                 ></div>
-                <div class="absolute bottom-5 left-5 right-5 text-white">
+                <div class="hidden sm:block absolute bottom-6 right-6 text-right text-white">
                   <p class="font-editorial text-2xl font-semibold">
                     Carla Viladot
                   </p>
                   <p class="text-xs text-white/90 tracking-wide">
-                    Psicóloga General Sanitaria · Col. M-34892
+                    Psicóloga General Sanitaria · Col. 29332
                   </p>
                 </div>
               </div>
 
               <!-- Tarjeta flotante de confianza -->
               <div
-                class="mt-4 sm:mt-0 sm:absolute -bottom-6 -left-6 bg-white rounded-2xl p-4 shadow-md border border-[#2C3E35]/10 max-w-xs"
+                class="absolute -bottom-5 left-3 right-3 sm:left-auto sm:right-auto sm:-left-6 sm:-bottom-6 bg-white/95 backdrop-blur-xs sm:bg-white rounded-2xl p-3.5 sm:p-4 shadow-xl sm:shadow-md border border-[#2C3E35]/10 sm:max-w-xs z-10"
               >
                 <div class="flex items-start gap-3">
                   <div
-                    class="w-10 h-10 rounded-xl bg-[#6B8E23]/15 text-[#4A6B5D] flex items-center justify-center shrink-0"
+                    class="w-10 h-10 rounded-xl bg-[#6B8E23]/15 text-[#4A6B5D] flex items-center justify-center shrink-0 mt-0.5"
                   >
                     <ShieldCheck class="w-5 h-5" />
                   </div>
                   <div>
                     <p class="text-xs font-bold text-[#2C3E35]">
-                      +480 procesos acompañados
+                      Carla Viladot Psicóloga
                     </p>
                     <p class="text-xs text-[#2C3E35]/70 mt-0.5 leading-snug">
                       Espacio 100% confidencial, cálido y respaldado por evidencia clínica.
@@ -729,33 +724,37 @@ function prefillSituation(text) {
 
             <!-- Cuerpo blanco -->
             <div class="p-7 flex-1 flex flex-col bg-white">
-              <p
-                class="text-sm italic text-[#2C3E35]/75 text-center leading-relaxed mb-6"
-              >
-                {{ item.intro }}
-              </p>
-
-              <p
-                class="text-[11px] font-bold uppercase tracking-wider text-[#2C3E35]/45 pb-2.5 mb-4 border-b border-[#2C3E35]/10"
-              >
-                CÓMO LO HACEMOS
-              </p>
-
-              <div class="flex items-start gap-3 pb-4">
-                <component
-                  :is="item.icon"
-                  class="w-4 h-4 shrink-0 mt-1"
-                  :class="item.iconColor"
-                />
-                <p class="text-xs sm:text-sm text-[#2C3E35]/85 leading-relaxed">
-                  <strong class="font-semibold text-[#2C3E35]">{{ item.methodBold }}</strong>
-                  {{ ' ' + item.methodText }}
+              <div class="min-h-[72px] sm:min-h-[80px] lg:min-h-[88px] flex items-center justify-center mb-6">
+                <p
+                  class="text-sm italic text-[#2C3E35]/75 text-center leading-relaxed"
+                >
+                  {{ item.intro }}
                 </p>
+              </div>
+
+              <div class="flex-1 flex flex-col">
+                <p
+                  class="text-[11px] font-bold uppercase tracking-wider text-[#2C3E35]/45 pb-2.5 mb-4 border-b border-[#2C3E35]/10"
+                >
+                  CÓMO LO HACEMOS
+                </p>
+
+                <div class="flex items-start gap-3 pb-4 flex-1">
+                  <component
+                    :is="item.icon"
+                    class="w-4 h-4 shrink-0 mt-1"
+                    :class="item.iconColor"
+                  />
+                  <p class="text-xs sm:text-sm text-[#2C3E35]/85 leading-relaxed">
+                    <strong class="font-semibold text-[#2C3E35]">{{ item.methodBold }}</strong>
+                    {{ ' ' + item.methodText }}
+                  </p>
+                </div>
               </div>
             </div>
 
             <!-- Pie sólido de color -->
-            <div :class="[item.footerBg, 'p-7 text-white']">
+            <div :class="[item.footerBg, 'p-7 text-white mt-auto']">
               <p
                 class="text-[11px] font-bold uppercase tracking-wider text-white/90 mb-2"
               >
@@ -1188,53 +1187,53 @@ function prefillSituation(text) {
 
         <!-- 3 Pasos en Tarjetas -->
         <div class="relative grid grid-cols-1 md:grid-cols-3 gap-8 pt-6 mb-12">
-          <!-- Línea conectora sutil en desktop -->
+          <!-- Línea conectora que pasa detrás de las esferas numeradas -->
           <div
-            class="hidden md:block absolute top-16 left-16 right-16 h-px bg-[#2C3E35]/10 pointer-events-none"
+            class="hidden md:block absolute top-6 left-24 right-24 h-px bg-[#D9826C]/25 pointer-events-none z-0"
           ></div>
 
-          <!-- Paso 1 -->
+          <!-- Paso 1: Cuestionario previo -->
           <div
-            class="relative rounded-3xl bg-white border border-[#2C3E35]/10 shadow-xs px-7 pt-10 pb-8 text-center flex flex-col items-center"
+            class="relative rounded-3xl bg-white border border-[#2C3E35]/10 shadow-xs px-7 pt-10 pb-8 text-center flex flex-col items-center z-10"
           >
             <div
-              class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#FBE4DF] text-[#D9826C] font-editorial font-bold text-lg flex items-center justify-center shadow-xs"
+              class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#FBE4DF] text-[#D9826C] font-editorial font-bold text-lg flex items-center justify-center shadow-xs border-2 border-white"
             >
               1
-            </div>
-            <Calendar class="w-6 h-6 text-[#2C3E35]/55 mb-3.5" />
-            <h3 class="font-editorial text-xl sm:text-2xl font-semibold text-[#2C3E35] mb-2.5">
-              Reserva tu espacio
-            </h3>
-            <p class="text-xs sm:text-sm text-[#2C3E35]/75 leading-relaxed">
-              Haz clic en el botón y elige el día y la hora que mejor te vengan en mi calendario para agendar nuestra cita.
-            </p>
-          </div>
-
-          <!-- Paso 2 -->
-          <div
-            class="relative rounded-3xl bg-white border border-[#2C3E35]/10 shadow-xs px-7 pt-10 pb-8 text-center flex flex-col items-center"
-          >
-            <div
-              class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#FBE4DF] text-[#D9826C] font-editorial font-bold text-lg flex items-center justify-center shadow-xs"
-            >
-              2
             </div>
             <ClipboardList class="w-6 h-6 text-[#2C3E35]/55 mb-3.5" />
             <h3 class="font-editorial text-xl sm:text-2xl font-semibold text-[#2C3E35] mb-2.5">
               Cuestionario previo
             </h3>
             <p class="text-xs sm:text-sm text-[#2C3E35]/75 leading-relaxed">
-              Responde unas breves preguntas (2 minutos) para que pueda entender tu situación y momento vital antes de vernos.
+              Haz clic en el botón y responde unas breves preguntas (te llevará 2 minutos) para que pueda entender tu situación y tu momento vital.
             </p>
           </div>
 
-          <!-- Paso 3 -->
+          <!-- Paso 2: Agendamos la cita -->
           <div
-            class="relative rounded-3xl bg-white border border-[#2C3E35]/10 shadow-xs px-7 pt-10 pb-8 text-center flex flex-col items-center"
+            class="relative rounded-3xl bg-white border border-[#2C3E35]/10 shadow-xs px-7 pt-10 pb-8 text-center flex flex-col items-center z-10"
           >
             <div
-              class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#FBE4DF] text-[#D9826C] font-editorial font-bold text-lg flex items-center justify-center shadow-xs"
+              class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#FBE4DF] text-[#D9826C] font-editorial font-bold text-lg flex items-center justify-center shadow-xs border-2 border-white"
+            >
+              2
+            </div>
+            <UserCheck class="w-6 h-6 text-[#2C3E35]/55 mb-3.5" />
+            <h3 class="font-editorial text-xl sm:text-2xl font-semibold text-[#2C3E35] mb-2.5">
+              Agendamos la cita
+            </h3>
+            <p class="text-xs sm:text-sm text-[#2C3E35]/75 leading-relaxed">
+              Una vez reciba tus respuestas, me pondré en contacto contigo para acordar el día y la hora que mejor te vengan.
+            </p>
+          </div>
+
+          <!-- Paso 3: Nuestra llamada -->
+          <div
+            class="relative rounded-3xl bg-white border border-[#2C3E35]/10 shadow-xs px-7 pt-10 pb-8 text-center flex flex-col items-center z-10"
+          >
+            <div
+              class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[#FBE4DF] text-[#D9826C] font-editorial font-bold text-lg flex items-center justify-center shadow-xs border-2 border-white"
             >
               3
             </div>
@@ -1243,7 +1242,7 @@ function prefillSituation(text) {
               Nuestra llamada
             </h3>
             <p class="text-xs sm:text-sm text-[#2C3E35]/75 leading-relaxed">
-              Videollamada gratuita de 30 min. Analizaremos tu caso con honestidad y te explicaré cómo empezamos a trabajar.
+              Tendremos una videollamada gratuita de 30 min. por Google Meet para valorar tu caso y ver si este acompañamiento es para ti.
             </p>
           </div>
         </div>
@@ -1572,10 +1571,11 @@ function prefillSituation(text) {
               Navegación
             </p>
             <ul class="space-y-2 text-[#FAF8F5]/75">
-              <li><a href="#puntos-dolor" class="hover:text-white">Puntos de Dolor</a></li>
-              <li><a href="#el-programa" class="hover:text-white">Programa 3 Semanas</a></li>
-              <li><a href="#sobre-mi" class="hover:text-white">Carla Viladot</a></li>
-              <li><a href="#contacto" class="hover:text-white">Reservar Sesión</a></li>
+              <li><a href="#" class="hover:text-white">Inicio</a></li>
+              <li><a href="#el-programa" class="hover:text-white">Programa</a></li>
+              <li><a href="#sobre-mi" class="hover:text-white">Sobre mí</a></li>
+              <li><a href="#contacto" class="hover:text-white">Contacto</a></li>
+              <li><RouterLink to="/recursos" class="hover:text-white">Recursos Gratuitos</RouterLink></li>
             </ul>
           </div>
 
@@ -1590,9 +1590,24 @@ function prefillSituation(text) {
                   <span>Acceso Alumnos / Admin</span>
                 </RouterLink>
               </li>
-              <li><a href="#garantia" class="hover:text-white">Aviso Legal y RGPD</a></li>
-              <li><a href="#garantia" class="hover:text-white">Política de Privacidad Sanitaria</a></li>
-              <li><a href="#garantia" class="hover:text-white">Política de Cookies</a></li>
+              <li>
+                <RouterLink to="/aviso-legal" class="hover:text-white">Aviso Legal</RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/privacidad" class="hover:text-white">Política de Privacidad</RouterLink>
+              </li>
+              <li>
+                <RouterLink to="/cookies" class="hover:text-white">Política de Cookies</RouterLink>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  @click="openCookieSettingsModal"
+                  class="text-xs text-[#FAF8F5]/60 hover:text-white underline cursor-pointer text-left"
+                >
+                  Configuración de Cookies
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -1601,17 +1616,17 @@ function prefillSituation(text) {
           class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#FAF8F5]/60 gap-4"
         >
           <p>
-            © {{ new Date().getFullYear() }} Vuelve a Ti · Carla Viladot (Col. M-34892). Todos los derechos reservados.
+            © {{ new Date().getFullYear() }} Vuelve a Ti · Carla Viladot Fonseca (NIF 49255948E · Col. 29332). Todos los derechos reservados.
           </p>
           <div class="flex items-center gap-5">
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" class="hover:text-white">
-              Instagram
-            </a>
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer" class="hover:text-white">
-              LinkedIn
-            </a>
-            <a href="https://spotify.com" target="_blank" rel="noreferrer" class="hover:text-white">
-              Podcast “Volver a Mí”
+            <a
+              href="https://www.instagram.com/carlaviladot.psicologa/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+            >
+              <Instagram class="w-4 h-4 text-[#D9826C]" />
+              <span>Instagram</span>
             </a>
           </div>
         </div>

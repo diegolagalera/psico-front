@@ -5,6 +5,9 @@ import LandingView from '@/views/LandingView.vue'
 import LoginView from '@/views/LoginView.vue'
 import UserDashboardView from '@/views/UserDashboardView.vue'
 import ResourcesHubView from '@/views/ResourcesHubView.vue'
+import LegalNoticeView from '@/views/LegalNoticeView.vue'
+import PrivacyPolicyView from '@/views/PrivacyPolicyView.vue'
+import CookiesPolicyView from '@/views/CookiesPolicyView.vue'
 import AdminLayout from '@/views/admin/AdminLayout.vue'
 import CoursesManagementView from '@/views/admin/CoursesManagementView.vue'
 import ResourcesManagementView from '@/views/admin/ResourcesManagementView.vue'
@@ -20,6 +23,24 @@ const routes = [
     name: 'landing',
     component: LandingView,
     meta: { title: 'Vuelve a Ti · Psicología y Reconstrucción Personal' },
+  },
+  {
+    path: '/aviso-legal',
+    name: 'legal-notice',
+    component: LegalNoticeView,
+    meta: { title: 'Aviso Legal · Carla Viladot Psicología' },
+  },
+  {
+    path: '/privacidad',
+    name: 'privacy-policy',
+    component: PrivacyPolicyView,
+    meta: { title: 'Política de Privacidad · Carla Viladot Psicología' },
+  },
+  {
+    path: '/cookies',
+    name: 'cookies-policy',
+    component: CookiesPolicyView,
+    meta: { title: 'Política de Cookies · Carla Viladot Psicología' },
   },
   {
     path: '/recursos',

@@ -27,7 +27,10 @@ import {
   X,
   ExternalLink,
   Share2,
+  Cookie,
+  Menu,
 } from 'lucide-vue-next'
+import { useCookieConsent } from '@/composables/useCookieConsent'
 
 const LEAD_STORAGE_KEY = 'vuelve_a_ti_lead'
 
@@ -42,6 +45,7 @@ const currentResource = ref(null)
 const relatedResources = ref([])
 const searchQuery = ref('')
 const selectedCategory = ref('Todas')
+const mobileMenuOpen = ref(false)
 
 // Estado del Lead guardado en caché del navegador (localStorage)
 const cachedLead = ref(null)
@@ -276,12 +280,23 @@ function formatInline(str) {
     .replace(/\*(.+?)\*/g, '<em class="italic">$1</em>')
 }
 
+const { isAllowed, acceptAll, openSettings } = useCookieConsent()
+const userTemporarilyAllowedVideo = ref(false)
+
+function isVideoAllowed() {
+  return userTemporarilyAllowedVideo.value || isAllowed('marketing')
+}
+
+function allowVideoOnce() {
+  userTemporarilyAllowedVideo.value = true
+}
+
 function getYoutubeEmbedUrl(url) {
   if (!url) return ''
   const match = url.match(
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
   )
-  return match ? `https://www.youtube.com/embed/${match[1]}` : ''
+  return match ? `https://www.youtube-nocookie.com/embed/${match[1]}?rel=0` : ''
 }
 
 watch(
@@ -291,49 +306,56 @@ watch(
   }
 )
 
+watch(
+  () => route.fullPath,
+  () => {
+    mobileMenuOpen.value = false
+  }
+)
+
 onMounted(() => {
   loadData()
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#FAF8F5] text-[#2C3E35] flex flex-col">
+  <div class="min-h-screen bg-[#FAF8F5] text-[#2C3E35] flex flex-col overflow-x-hidden">
     <!-- =====================================================
-         1. HEADER / NAVBAR EDITORIAL
+         1. HEADER / NAVBAR EDITORIAL RESPONSIVE
          ===================================================== -->
     <header
       class="sticky top-0 z-40 w-full bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#2C3E35]/10"
     >
       <div
-        class="w-full px-5 sm:px-8 lg:px-12 xl:px-16 h-20 flex items-center justify-between gap-4"
+        class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-3"
       >
-        <div class="flex items-center gap-3 shrink-0">
-          <RouterLink to="/" class="flex items-center gap-3 group whitespace-nowrap">
-            <div
-              class="w-11 h-11 rounded-2xl bg-[#4A6B5D] text-[#FAF8F5] flex items-center justify-center shadow-xs group-hover:bg-[#24332B] transition-colors shrink-0"
+        <!-- Logo -->
+        <RouterLink to="/" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+          <div
+            class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#4A6B5D] text-[#FAF8F5] flex items-center justify-center shadow-xs group-hover:bg-[#24332B] transition-colors shrink-0"
+          >
+            <Feather class="w-5 h-5" />
+          </div>
+          <div>
+            <span
+              class="font-editorial text-xl sm:text-2xl font-semibold tracking-tight text-[#24332B] block leading-none"
             >
-              <Feather class="w-5 h-5" />
-            </div>
-            <div class="whitespace-nowrap">
-              <span
-                class="font-editorial text-2xl font-semibold tracking-tight text-[#24332B] block leading-none"
-              >
-                Vuelve a Ti
-              </span>
-              <span
-                class="text-[10px] uppercase tracking-[0.18em] text-[#4A6B5D] font-bold block mt-1 whitespace-nowrap"
-              >
-                Foro de Recursos Gratuitos
-              </span>
-            </div>
-          </RouterLink>
-        </div>
+              Vuelve a Ti
+            </span>
+            <span
+              class="text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.18em] text-[#4A6B5D] font-bold block mt-1"
+            >
+              Recursos Gratuitos
+            </span>
+          </div>
+        </RouterLink>
 
-        <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <!-- Navegación Escritorio (md+) -->
+        <div class="hidden md:flex items-center gap-2.5 sm:gap-3 shrink-0">
           <!-- Indicador de correo recordado en caché del navegador -->
           <div
             v-if="cachedLead?.email"
-            class="hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-emerald-900 text-xs font-medium whitespace-nowrap"
+            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-emerald-900 text-xs font-medium whitespace-nowrap"
             title="Tu correo ya está verificado en este navegador. Tienes acceso directo a todos los recursos."
           >
             <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -371,6 +393,78 @@ onMounted(() => {
             <span>{{ authStore.isAuthenticated ? (authStore.isAdmin ? 'Editar Recursos' : 'Mi Campus') : 'Acceso Alumnos' }}</span>
           </RouterLink>
         </div>
+
+        <!-- Controles Móvil (< md) -->
+        <div class="flex md:hidden items-center gap-2 shrink-0">
+          <RouterLink
+            v-if="isDetailMode"
+            to="/recursos"
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white border border-[#2C3E35]/12 text-[#24332B]"
+          >
+            <ArrowLeft class="w-3.5 h-3.5" />
+            <span>Foro</span>
+          </RouterLink>
+
+          <button
+            type="button"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="p-2 rounded-xl text-[#2C3E35] hover:bg-[#4A6B5D]/10 transition-colors cursor-pointer"
+            aria-label="Abrir menú"
+          >
+            <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
+            <X v-else class="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Menú Desplegable Móvil -->
+      <div
+        v-if="mobileMenuOpen"
+        class="md:hidden bg-[#FAF8F5] border-b border-[#2C3E35]/10 px-5 py-4 space-y-3 shadow-lg"
+      >
+        <!-- Si tiene email en caché -->
+        <div
+          v-if="cachedLead?.email"
+          class="flex items-center justify-between p-3 rounded-2xl bg-emerald-500/10 border border-emerald-600/20 text-emerald-900 text-xs"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+            <span class="truncate font-medium">{{ cachedLead.email }}</span>
+          </div>
+          <button
+            type="button"
+            @click="clearCachedLead"
+            class="text-xs text-emerald-800 underline ml-2 shrink-0 cursor-pointer"
+          >
+            Cambiar
+          </button>
+        </div>
+
+        <RouterLink
+          to="/"
+          @click="mobileMenuOpen = false"
+          class="block py-2 text-sm font-semibold text-[#2C3E35] hover:text-[#4A6B5D]"
+        >
+          Ir a la Web Principal
+        </RouterLink>
+
+        <RouterLink
+          v-if="isDetailMode"
+          to="/recursos"
+          @click="mobileMenuOpen = false"
+          class="block py-2 text-sm font-semibold text-[#2C3E35] hover:text-[#4A6B5D]"
+        >
+          Ver Todos los Recursos
+        </RouterLink>
+
+        <RouterLink
+          :to="authStore.isAuthenticated ? (authStore.isAdmin ? '/admin/resources' : '/dashboard') : '/login'"
+          @click="mobileMenuOpen = false"
+          class="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-xs font-semibold bg-[#24332B] text-white hover:bg-[#4A6B5D] transition-colors mt-2"
+        >
+          <Lock class="w-3.5 h-3.5 text-[#D9826C] shrink-0" />
+          <span>{{ authStore.isAuthenticated ? (authStore.isAdmin ? 'Panel de Administración' : 'Mi Campus') : 'Acceso Alumnos' }}</span>
+        </RouterLink>
       </div>
     </header>
 
@@ -431,7 +525,7 @@ onMounted(() => {
 
       <!-- Barra de Búsqueda y Filtros por Categoría -->
       <section class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
           <button
             v-for="cat in categories"
             :key="cat"
@@ -877,15 +971,53 @@ onMounted(() => {
               <!-- Vídeo de YouTube -->
               <div
                 v-else-if="getYoutubeEmbedUrl(currentResource.video_external_url)"
-                class="aspect-video w-full"
+                class="aspect-video w-full bg-[#1c2721] relative"
               >
+                <!-- Iframe si está permitido -->
                 <iframe
+                  v-if="isVideoAllowed()"
                   :src="getYoutubeEmbedUrl(currentResource.video_external_url)"
                   class="w-full h-full"
                   frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowfullscreen
                 ></iframe>
+
+                <!-- Placeholder de Privacidad (AEPD) si no ha aceptado cookies multimedia -->
+                <div
+                  v-else
+                  class="w-full h-full p-6 sm:p-10 flex flex-col items-center justify-center text-center text-white space-y-4"
+                >
+                  <div
+                    class="w-12 h-12 rounded-2xl bg-[#D9826C]/20 text-[#D9826C] flex items-center justify-center"
+                  >
+                    <Cookie class="w-6 h-6" />
+                  </div>
+                  <div class="max-w-md space-y-1.5">
+                    <p class="font-editorial text-lg sm:text-xl font-semibold">
+                      Vídeo externo de YouTube bloqueado por privacidad
+                    </p>
+                    <p class="text-xs text-white/70 leading-relaxed">
+                      Para ver este contenido multimedia explicativo es necesario cargar el reproductor de YouTube, que puede instalar cookies de terceros.
+                    </p>
+                  </div>
+                  <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      @click="allowVideoOnce"
+                      class="px-4 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-semibold shadow-xs cursor-pointer"
+                    >
+                      Cargar vídeo esta vez
+                    </button>
+                    <button
+                      type="button"
+                      @click="openSettings"
+                      class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer"
+                    >
+                      Ajustar preferencias
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <!-- Otro enlace de vídeo externo -->
@@ -1048,6 +1180,32 @@ onMounted(() => {
         </div>
       </section>
     </main>
+
+    <!-- Footer de la biblioteca -->
+    <footer class="mt-16 bg-[#24332B] text-[#FAF8F5] py-12 border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-6 pb-6 border-b border-white/10 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-editorial text-lg font-semibold">Vuelve a Ti</span>
+            <span class="text-white/40">·</span>
+            <span class="text-white/70">Biblioteca de Recursos Terapéuticos</span>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-5 text-white/80">
+            <RouterLink to="/" class="hover:text-white">Inicio</RouterLink>
+            <RouterLink to="/recursos" class="hover:text-white">Recursos</RouterLink>
+            <RouterLink to="/aviso-legal" class="hover:text-white">Aviso Legal</RouterLink>
+            <RouterLink to="/privacidad" class="hover:text-white">Privacidad</RouterLink>
+            <RouterLink to="/cookies" class="hover:text-white">Cookies</RouterLink>
+          </div>
+        </div>
+
+        <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/50 gap-3">
+          <p>© {{ new Date().getFullYear() }} Carla Viladot Fonseca · Todos los derechos reservados.</p>
+          <p>Colegio Oficial de Psicología de Cataluña (Col. 29332)</p>
+        </div>
+      </div>
+    </footer>
 
     <!-- =====================================================
          MODAL VISOR DE PDF INTEGRADO EN NAVEGADOR

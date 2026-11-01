@@ -20,6 +20,7 @@ const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
+const isDev = import.meta.env.DEV
 
 async function handleLogin() {
   try {
@@ -163,8 +164,8 @@ function fillDemoCredentials(role) {
           </p>
         </div>
 
-        <!-- Accesos rápidos de demostración -->
-        <div class="mt-5 pt-5 border-t border-[#2C3E35]/10">
+        <!-- Accesos rápidos de demostración (solo visibles en desarrollo local) -->
+        <div v-if="isDev" class="mt-5 pt-5 border-t border-[#2C3E35]/10">
           <p
             class="text-[11px] uppercase tracking-wider text-[#4A6B5D] font-bold mb-2.5 flex items-center gap-1.5"
           >

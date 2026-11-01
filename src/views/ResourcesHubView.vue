@@ -774,7 +774,7 @@ onMounted(() => {
                   CV
                 </div>
                 <div>
-                  <p class="text-xs font-bold text-[#24332B]">Dra. Carla Viladot</p>
+                  <p class="text-xs font-bold text-[#24332B]">Carla Viladot</p>
                   <p class="text-[11px] text-[#2C3E35]/60">Psicóloga · Programa Vuelve a Ti</p>
                 </div>
               </div>
@@ -914,7 +914,7 @@ onMounted(() => {
                     class="mt-1 w-4 h-4 rounded accent-[#D9826C] shrink-0 cursor-pointer"
                   />
                   <span class="text-xs text-white/85 leading-relaxed">
-                    <strong>Consentimiento de Email Marketing:</strong> Soy consciente y acepto que mi correo electrónico se incorpore a la lista de suscripción de la <strong>Dra. Carla Viladot (Vuelve a Ti)</strong> para recibir este recurso gratuito, cartas terapéuticas, novedades sobre sus programas y comunicaciones de marketing. Podré darme de baja en cualquier momento con un solo clic.
+                    <strong>Consentimiento:</strong> Soy consciente y acepto que mi correo electrónico se incorpore a la lista de suscripción de Carla Viladot para recibir este recurso gratuito y comunicaciónes de marketing, Podré darme de baja en cualquier momento con un solo clic.
                   </span>
                 </label>
 

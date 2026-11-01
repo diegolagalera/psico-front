@@ -40,6 +40,7 @@ import {
   ArrowRight,
 } from 'lucide-vue-next'
 import { toast } from '@/composables/useToast'
+import PdfViewer from '@/components/PdfViewer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -2013,16 +2014,16 @@ onMounted(() => {
     <!-- MODAL PREVISUALIZAR RECURSO EN ADMIN -->
     <div
       v-if="adminPreviewModal.open"
-      class="fixed inset-0 z-50 bg-[#2C3E35]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn"
+      class="fixed inset-0 z-50 bg-[#2C3E35]/80 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4 md:p-6 animate-fadeIn"
       @click.self="adminPreviewModal.open = false"
     >
-      <div class="bg-white rounded-3xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-[#2C3E35]/15">
-        <div class="px-5 py-3.5 border-b border-[#2C3E35]/10 bg-[#FAF8F5] flex items-center justify-between gap-3">
-          <div class="min-w-0">
+      <div class="bg-white rounded-none sm:rounded-3xl max-w-4xl w-full h-[100dvh] sm:h-[85vh] flex flex-col overflow-hidden shadow-2xl border-0 sm:border border-[#2C3E35]/15">
+        <div class="px-4 sm:px-5 py-3 sm:py-3.5 border-b border-[#2C3E35]/10 bg-[#FAF8F5] flex items-center justify-between gap-3 shrink-0">
+          <div class="min-w-0 flex-1">
             <span class="text-[10px] font-bold uppercase tracking-wider text-[#4A6B5D] block">
               Vista Previa del Recurso · {{ adminPreviewModal.resource?.resource_type }}
             </span>
-            <h3 class="font-editorial text-xl font-semibold text-[#2C3E35] truncate">
+            <h3 class="font-editorial text-base sm:text-xl font-semibold text-[#2C3E35] truncate">
               {{ adminPreviewModal.resource?.title }}
             </h3>
           </div>
@@ -2032,15 +2033,16 @@ onMounted(() => {
               :href="adminPreviewModal.previewUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="px-3 py-1.5 rounded-xl bg-white border border-[#2C3E35]/15 text-xs font-semibold text-[#2C3E35] inline-flex items-center gap-1.5 hover:bg-black/5"
+              class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white border border-[#2C3E35]/15 text-xs font-semibold text-[#2C3E35] inline-flex items-center gap-1.5 hover:bg-black/5"
             >
               <ExternalLink class="w-3.5 h-3.5" />
-              <span>Abrir pestaña</span>
+              <span class="hidden sm:inline">Abrir pestaña</span>
             </a>
             <button
               type="button"
               @click="adminPreviewModal.open = false"
-              class="p-2 rounded-xl bg-white border border-[#2C3E35]/15 text-[#2C3E35]/70 hover:text-[#2C3E35] cursor-pointer"
+              class="p-1.5 sm:p-2 rounded-xl bg-white border border-[#2C3E35]/15 text-[#2C3E35]/70 hover:text-[#2C3E35] cursor-pointer"
+              aria-label="Cerrar visor"
             >
               <X class="w-4 h-4" />
             </button>
@@ -2061,12 +2063,12 @@ onMounted(() => {
             <p class="font-editorial text-2xl">{{ adminPreviewModal.resource?.title }}</p>
             <audio :src="adminPreviewModal.previewUrl" controls autoplay class="w-full max-w-md"></audio>
           </div>
-          <iframe
+          <PdfViewer
             v-else-if="adminPreviewModal.previewUrl"
             :src="adminPreviewModal.previewUrl"
-            class="w-full flex-1 border-0 bg-white"
             :title="adminPreviewModal.resource?.title"
-          ></iframe>
+            class="w-full flex-1"
+          />
         </div>
       </div>
     </div>

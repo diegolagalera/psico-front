@@ -39,6 +39,7 @@ import {
   Minimize2,
 } from 'lucide-vue-next'
 import { toast } from '@/composables/useToast'
+import PdfViewer from '@/components/PdfViewer.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -1460,57 +1461,57 @@ onMounted(() => {
       <div
         v-if="previewModal.open"
         class="fixed inset-0 z-50 flex items-center justify-center"
-        :class="previewModal.fullscreen ? 'p-0' : 'p-2 sm:p-5'"
+        :class="previewModal.fullscreen ? 'p-0' : 'p-0 sm:p-4 md:p-6'"
       >
         <!-- Fondo Oscurecido -->
         <div
-          class="fixed inset-0 bg-[#2C3E35]/75 backdrop-blur-xs transition-opacity"
+          class="fixed inset-0 bg-[#2C3E35]/80 backdrop-blur-xs transition-opacity"
           @click="closePreviewModal"
         ></div>
 
         <!-- Contenedor del Visor -->
         <div
-          class="relative bg-white border border-[#2C3E35]/15 shadow-2xl flex flex-col overflow-hidden z-10 animate-fadeIn transition-all"
+          class="relative bg-white border-0 sm:border border-[#2C3E35]/15 shadow-2xl flex flex-col overflow-hidden z-10 animate-fadeIn transition-all"
           :class="
             previewModal.fullscreen
               ? 'w-screen h-screen rounded-none'
-              : 'w-full max-w-5xl h-[90vh] sm:h-[88vh] rounded-3xl'
+              : 'w-full max-w-5xl h-[100dvh] sm:h-[88vh] rounded-none sm:rounded-3xl'
           "
         >
           <!-- Cabecera del Visor -->
-          <div class="px-4 sm:px-6 py-3.5 border-b border-[#2C3E35]/10 bg-[#FAF8F5] flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
+          <div class="px-3 sm:px-6 py-2.5 sm:py-3.5 border-b border-[#2C3E35]/10 bg-[#FAF8F5] flex items-center justify-between gap-2 sm:gap-3">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <div
-                class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
+                class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0"
                 :class="
                   isAudioResource(previewModal.resource)
                     ? 'bg-[#4A6B5D]/15 text-[#4A6B5D]'
                     : 'bg-[#D9826C]/15 text-[#D9826C]'
                 "
               >
-                <Headphones v-if="isAudioResource(previewModal.resource)" class="w-5 h-5" />
-                <FileText v-else class="w-5 h-5" />
+                <Headphones v-if="isAudioResource(previewModal.resource)" class="w-4 h-4 sm:w-5 sm:h-5" />
+                <FileText v-else class="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div class="min-w-0">
-                <h3 class="font-editorial text-lg sm:text-xl font-semibold text-[#2C3E35] truncate">
+              <div class="min-w-0 flex-1">
+                <h3 class="font-editorial text-base sm:text-xl font-semibold text-[#2C3E35] truncate">
                   {{ previewModal.resource?.title }}
                 </h3>
               </div>
             </div>
 
             <!-- Controles de la cabecera del visor -->
-            <div class="flex items-center gap-2 shrink-0">
-              <!-- Selector rápido si hay varios recursos en la clase -->
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <!-- Selector rápido si hay varios recursos en la clase (visible en pantallas grandes) -->
               <div
                 v-if="activeLesson?.resources?.length > 1"
-                class="hidden md:flex items-center gap-1 mr-2 bg-white px-2 py-1 rounded-xl border border-[#2C3E35]/10"
+                class="hidden lg:flex items-center gap-1 mr-1 bg-white px-2 py-1 rounded-xl border border-[#2C3E35]/10"
               >
                 <button
                   v-for="(rItem, rIdx) in activeLesson.resources"
                   :key="rItem.id"
                   type="button"
                   @click="handlePreviewResource(rItem, { inlineAudio: false })"
-                  class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer max-w-[140px] truncate"
+                  class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer max-w-[130px] truncate"
                   :class="
                     previewModal.resource?.id === rItem.id
                       ? 'bg-[#2C3E35] text-white'
@@ -1527,11 +1528,11 @@ onMounted(() => {
                 :href="previewModal.previewUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-3 py-2 rounded-xl bg-white hover:bg-[#2C3E35]/5 border border-[#2C3E35]/12 text-xs font-semibold text-[#2C3E35] inline-flex items-center gap-1.5 transition-colors"
+                class="p-2 sm:px-3 sm:py-2 rounded-xl bg-white hover:bg-[#2C3E35]/5 border border-[#2C3E35]/12 text-xs font-semibold text-[#2C3E35] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="Abrir en una pestaña nueva del navegador"
               >
-                <ExternalLink class="w-3.5 h-3.5 text-[#4A6B5D]" />
-                <span class="hidden sm:inline">Pestaña nueva</span>
+                <ExternalLink class="w-4 h-4 text-[#4A6B5D]" />
+                <span class="hidden md:inline">Pestaña nueva</span>
               </a>
 
               <!-- Botón Descargar -->
@@ -1539,17 +1540,18 @@ onMounted(() => {
                 v-if="previewModal.resource"
                 type="button"
                 @click="handleDownloadResource(previewModal.resource)"
-                class="px-3.5 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                class="px-2.5 sm:px-3.5 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title="Descargar archivo"
               >
-                <Download class="w-3.5 h-3.5" />
-                <span>Descargar</span>
+                <Download class="w-4 h-4" />
+                <span class="hidden sm:inline">Descargar</span>
               </button>
 
-              <!-- Botón Pantalla Completa -->
+              <!-- Botón Pantalla Completa (desktop) -->
               <button
                 type="button"
                 @click="previewModal.fullscreen = !previewModal.fullscreen"
-                class="w-9 h-9 rounded-xl bg-white border border-[#2C3E35]/12 text-[#2C3E35]/70 hover:text-[#2C3E35] hover:bg-[#2C3E35]/5 hidden sm:flex items-center justify-center transition-colors cursor-pointer"
+                class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-[#2C3E35]/12 text-[#2C3E35]/70 hover:text-[#2C3E35] hover:bg-[#2C3E35]/5 hidden sm:flex items-center justify-center transition-colors cursor-pointer"
                 :title="previewModal.fullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'"
               >
                 <Minimize2 v-if="previewModal.fullscreen" class="w-4 h-4" />
@@ -1560,10 +1562,10 @@ onMounted(() => {
               <button
                 type="button"
                 @click="closePreviewModal"
-                class="w-9 h-9 rounded-xl bg-white border border-[#2C3E35]/12 text-[#2C3E35]/70 hover:text-[#2C3E35] hover:bg-[#2C3E35]/5 flex items-center justify-center transition-colors cursor-pointer"
+                class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-[#2C3E35]/12 text-[#2C3E35]/70 hover:text-[#2C3E35] hover:bg-[#2C3E35]/5 flex items-center justify-center transition-colors cursor-pointer"
                 aria-label="Cerrar visor"
               >
-                <X class="w-5 h-5" />
+                <X class="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
@@ -1640,13 +1642,14 @@ onMounted(() => {
               />
             </div>
 
-            <!-- 3. VISOR DE PDF EN EL NAVEGADOR -->
-            <iframe
+            <!-- 3. VISOR DE PDF MULTIPÁGINA MODERNO -->
+            <PdfViewer
               v-else-if="isPdfResource(previewModal.resource) && previewModal.previewUrl"
               :src="previewModal.previewUrl"
-              class="w-full flex-1 border-0 bg-white"
               :title="previewModal.resource?.title || 'Visor PDF'"
-            ></iframe>
+              :download-url="previewModal.downloadUrl || previewModal.previewUrl"
+              class="w-full flex-1"
+            />
 
             <!-- 4. OTROS DOCUMENTOS (WORD, POWERPOINT, ETC.) -->
             <div

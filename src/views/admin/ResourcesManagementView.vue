@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
+import PdfViewer from '@/components/PdfViewer.vue'
 import {
   BookOpen,
   Sparkles,
@@ -1850,21 +1851,34 @@ onMounted(async () => {
     <Teleport to="body">
       <div
         v-if="pdfModal.open"
-        class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4"
         @click.self="pdfModal.open = false"
       >
-        <div class="bg-white rounded-3xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-          <div class="px-5 py-3.5 bg-[#24332B] text-white flex items-center justify-between">
+        <div class="bg-white rounded-none sm:rounded-3xl w-full max-w-4xl h-[100dvh] sm:h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+          <div class="px-4 sm:px-5 py-3 sm:py-3.5 bg-[#24332B] text-white flex items-center justify-between gap-3 shrink-0">
             <span class="text-xs font-semibold truncate">{{ pdfModal.title }}</span>
-            <button
-              type="button"
-              @click="pdfModal.open = false"
-              class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-            >
-              <X class="w-4 h-4" />
-            </button>
+            <div class="flex items-center gap-2 shrink-0">
+              <a
+                v-if="pdfModal.url"
+                :href="pdfModal.url"
+                target="_blank"
+                rel="noopener"
+                class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                title="Abrir en pestaña nueva"
+              >
+                <ExternalLink class="w-4 h-4" />
+              </a>
+              <button
+                type="button"
+                @click="pdfModal.open = false"
+                class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                aria-label="Cerrar visor"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <iframe :src="pdfModal.url" class="w-full flex-1 bg-[#FAF8F5]"></iframe>
+          <PdfViewer :src="pdfModal.url" :title="pdfModal.title" class="w-full flex-1" />
         </div>
       </div>
     </Teleport>

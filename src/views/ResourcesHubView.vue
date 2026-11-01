@@ -31,6 +31,7 @@ import {
   Menu,
 } from 'lucide-vue-next'
 import { useCookieConsent } from '@/composables/useCookieConsent'
+import PdfViewer from '@/components/PdfViewer.vue'
 
 const LEAD_STORAGE_KEY = 'vuelve_a_ti_lead'
 
@@ -1213,44 +1214,67 @@ onMounted(() => {
     <Teleport to="body">
       <div
         v-if="pdfPreviewModal.open"
-        class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4 md:p-6"
         @click.self="closePdfModal"
       >
         <div
-          class="bg-white rounded-3xl w-full max-w-5xl h-[88vh] flex flex-col overflow-hidden shadow-2xl border border-[#2C3E35]/15"
+          class="bg-white w-full h-[100dvh] sm:h-[88vh] sm:max-w-5xl sm:rounded-3xl rounded-none flex flex-col overflow-hidden shadow-2xl border-0 sm:border border-[#2C3E35]/15 animate-fadeIn"
         >
-          <div class="px-5 py-3.5 bg-[#24332B] text-white flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <FileText class="w-4 h-4 text-[#D9826C] shrink-0" />
+          <!-- Cabecera del Visor de Recursos Gratuitos -->
+          <div class="px-3 sm:px-6 py-2.5 sm:py-3.5 bg-[#24332B] text-white flex items-center justify-between gap-2 sm:gap-3 shrink-0">
+            <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+              <div class="w-8 h-8 rounded-xl bg-[#D9826C]/20 flex items-center justify-center shrink-0">
+                <FileText class="w-4 h-4 text-[#D9826C]" />
+              </div>
               <span class="text-xs sm:text-sm font-semibold truncate">
                 {{ pdfPreviewModal.title }}
               </span>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <!-- Abrir en pestaña nueva -->
               <a
-                :href="pdfPreviewModal.downloadUrl"
+                v-if="pdfPreviewModal.previewUrl"
+                :href="pdfPreviewModal.previewUrl"
                 target="_blank"
                 rel="noopener"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-semibold transition-colors"
+                class="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Abrir en pestaña nueva"
+              >
+                <ExternalLink class="w-3.5 h-3.5" />
+                <span class="hidden md:inline">Pestaña nueva</span>
+              </a>
+
+              <!-- Descargar -->
+              <a
+                :href="pdfPreviewModal.downloadUrl || pdfPreviewModal.previewUrl"
+                target="_blank"
+                rel="noopener"
+                class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Descargar archivo"
               >
                 <Download class="w-3.5 h-3.5" />
-                <span>Descargar</span>
+                <span class="hidden sm:inline">Descargar</span>
               </a>
+
+              <!-- Cerrar -->
               <button
                 type="button"
                 @click="closePdfModal"
-                class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition-colors"
+                aria-label="Cerrar visor"
               >
                 <X class="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          <iframe
+          <!-- Componente Visor Multipágina -->
+          <PdfViewer
             :src="pdfPreviewModal.previewUrl"
-            class="w-full flex-1 bg-[#FAF8F5]"
-            title="Visor de PDF"
-          ></iframe>
+            :title="pdfPreviewModal.title"
+            :download-url="pdfPreviewModal.downloadUrl || pdfPreviewModal.previewUrl"
+            class="w-full flex-1"
+          />
         </div>
       </div>
     </Teleport>

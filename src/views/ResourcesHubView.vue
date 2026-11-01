@@ -706,23 +706,9 @@ onMounted(() => {
             class="w-full h-full object-cover"
           />
           <div class="absolute inset-0 bg-linear-to-t from-[#24332B]/70 via-transparent to-transparent"></div>
-          <div class="absolute bottom-4 left-6 right-6 flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-white text-[#24332B] shadow-xs">
-                {{ currentResource.category }}
-              </span>
-              <span
-                v-if="currentResource.instagram_keyword"
-                class="px-3 py-1 rounded-full text-xs font-bold bg-[#24332B]/90 text-white inline-flex items-center gap-1.5"
-              >
-                <Instagram class="w-3.5 h-3.5 text-[#D9826C]" />
-                <span>Reel: {{ currentResource.instagram_keyword }}</span>
-              </span>
-            </div>
-
-            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-black/50 text-white backdrop-blur-xs inline-flex items-center gap-1.5">
-              <Clock class="w-3.5 h-3.5 text-[#D9826C]" />
-              {{ currentResource.read_time_minutes }} min lectura
+          <div class="absolute bottom-4 left-6 right-6 flex items-center justify-between gap-2">
+            <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-white text-[#24332B] shadow-xs">
+              {{ currentResource.category }}
             </span>
           </div>
         </div>

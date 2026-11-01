@@ -1358,10 +1358,6 @@ onMounted(async () => {
                   <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-[#24332B]">
                     {{ form.category }}
                   </span>
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#24332B]/90 text-white inline-flex items-center gap-1">
-                    <Instagram class="w-3 h-3 text-[#D9826C]" />
-                    {{ form.instagram_keyword }}
-                  </span>
                 </div>
               </div>
 

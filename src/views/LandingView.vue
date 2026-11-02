@@ -782,9 +782,9 @@ function openCookieSettingsModal() {
           <div class="lg:col-span-5">
             <div class="relative rounded-2xl overflow-hidden shadow-md border border-[#2C3E35]/10">
               <img
-                src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=900&q=80"
-                alt="Consulta de la Carla Viladot"
-                class="w-full h-[420px] object-cover"
+                src="/images/carla-viladot-consulta.jpg"
+                alt="Carla Viladot - Psicóloga Especialista en Rupturas y Apego"
+                class="w-full h-[420px] object-cover object-top"
               />
             </div>
             <div class="grid grid-cols-2 gap-4 mt-4">

@@ -540,7 +540,7 @@ function openCookieSettingsModal() {
                 class="rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-[#E8E2D9] aspect-[4/5] relative"
               >
                 <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1000&q=85"
+                  src="/images/carla-viladot.jpg"
                   alt="Carla Viladot - Psicóloga Especialista en Rupturas Amorosas"
                   class="w-full h-full object-cover object-top"
                 />

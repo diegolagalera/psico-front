@@ -1561,8 +1561,7 @@ function openCookieSettingsModal() {
               <span class="font-editorial text-2xl font-semibold">Vuelve a Ti</span>
             </div>
             <p class="text-sm text-[#FAF8F5]/70 max-w-sm leading-relaxed">
-              Consulta de Psicología Sanitaria especializada en reconstrucción
-              personal tras rupturas amorosas, dependencia emocional y apego.
+              Programa de 10 semanas para superar la ruptura y reencontrarte. Acompañado por Carla Viladot Psicóloga
             </p>
           </div>
 

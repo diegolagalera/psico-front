@@ -55,6 +55,70 @@ let visibilityObserver = null
 let lazyObserver = null
 let resizeObserver = null
 const pageAspectRatios = ref({})
+const pageLinks = ref({})
+
+async function extractPageLinks(page, viewport) {
+  const links = []
+  try {
+    const annotations = await page.getAnnotations({ intent: 'display' })
+    for (const annot of annotations) {
+      if (annot.subtype !== 'Link' || !Array.isArray(annot.rect) || annot.rect.length < 4) {
+        continue
+      }
+
+      const [x1, y1, x2, y2] = viewport.convertToViewportRectangle(annot.rect)
+      const left = Math.min(x1, x2)
+      const top = Math.min(y1, y2)
+      const width = Math.abs(x2 - x1)
+      const height = Math.abs(y2 - y1)
+
+      if (width < 2 || height < 2 || !viewport.width || !viewport.height) {
+        continue
+      }
+
+      let href = (annot.url || annot.unsafeUrl || '').trim()
+      if (href && /^www\./i.test(href)) {
+        href = `https://${href}`
+      }
+
+      let targetPage = null
+      if (!href && annot.dest && pdfDoc) {
+        try {
+          let destArray = annot.dest
+          if (typeof destArray === 'string') {
+            destArray = await pdfDoc.getDestination(destArray)
+          }
+          if (Array.isArray(destArray) && destArray[0]) {
+            const idx = await pdfDoc.getPageIndex(destArray[0])
+            if (typeof idx === 'number' && idx >= 0) {
+              targetPage = idx + 1
+            }
+          }
+        } catch {
+          // Ignorar destinos internos no resolubles
+        }
+      }
+
+      if (!href && !targetPage) continue
+
+      links.push({
+        id: annot.id || `${left}-${top}-${width}-${height}`,
+        href,
+        targetPage,
+        title: annot.title || href || (targetPage ? `Ir a página ${targetPage}` : ''),
+        style: {
+          left: `${(left / viewport.width) * 100}%`,
+          top: `${(top / viewport.height) * 100}%`,
+          width: `${(width / viewport.width) * 100}%`,
+          height: `${(height / viewport.height) * 100}%`,
+        }
+      })
+    }
+  } catch (err) {
+    console.warn('[PdfViewer] No se pudieron extraer enlaces de la página:', err)
+  }
+  return links
+}
 
 // Cargar el documento PDF a través del proxy del backend (0 problemas de CORS)
 async function loadDocument() {
@@ -66,6 +130,7 @@ async function loadDocument() {
   currentPage.value = 1
   renderedPages.clear()
   renderingPages.value = {}
+  pageLinks.value = {}
   cancelPendingRenders()
 
   try {
@@ -194,6 +259,10 @@ async function renderPage(pageNum) {
 
     await renderTask.promise
     ctx.restore()
+
+    // Extraer enlaces interactivos (anotaciones Link del PDF) para esta página
+    const links = await extractPageLinks(page, viewport)
+    pageLinks.value = { ...pageLinks.value, [pageNum]: links }
 
     renderedPages.add(pageNum)
   } catch (err) {
@@ -430,11 +499,39 @@ onBeforeUnmount(() => {
           maxWidth: '100%'
         }"
       >
-        <!-- Canvas de la página -->
-        <canvas
-          :ref="(el) => { if (el) canvasRefs[pageNum] = el }"
-          class="block max-w-full h-auto mx-auto"
-        ></canvas>
+        <!-- Contenedor relativo ajustado exactamente al tamaño del canvas para alinear enlaces interactivos -->
+        <div class="relative inline-block mx-auto max-w-full">
+          <canvas
+            :ref="(el) => { if (el) canvasRefs[pageNum] = el }"
+            class="block max-w-full h-auto mx-auto"
+          ></canvas>
+
+          <!-- Capa de enlaces interactivos del PDF -->
+          <div
+            v-if="pageLinks[pageNum] && pageLinks[pageNum].length"
+            class="absolute inset-0 pointer-events-none z-10"
+          >
+            <template v-for="link in pageLinks[pageNum]" :key="link.id">
+              <a
+                v-if="link.href"
+                :href="link.href"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="link.title"
+                :style="link.style"
+                class="absolute pointer-events-auto cursor-pointer rounded-xs hover:bg-[#D9826C]/15 active:bg-[#D9826C]/25 transition-colors"
+              ></a>
+              <button
+                v-else-if="link.targetPage"
+                type="button"
+                :title="link.title"
+                :style="link.style"
+                @click="scrollToPage(link.targetPage)"
+                class="absolute pointer-events-auto cursor-pointer rounded-xs hover:bg-[#D9826C]/15 active:bg-[#D9826C]/25 transition-colors"
+              ></button>
+            </template>
+          </div>
+        </div>
 
         <!-- Spinner suave mientras se renderiza esta página específica -->
         <div

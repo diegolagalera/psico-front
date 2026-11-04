@@ -165,26 +165,24 @@ function setMetaTag(selector, attrName, attrVal, content) {
 
 function updateDocumentMeta(res) {
   if (typeof document === 'undefined') return
+  const title = 'Vuelve a Ti | Programa de 10 semanas para superar tu ruptura'
+  document.title = title
   if (res && res.title) {
-    const title = `${res.title} · Carla Viladot`
     const desc =
       res.subtitle ||
       res.teaser_text ||
-      'Recurso gratuito de psicología y reconstrucción personal por Carla Viladot.'
+      'Programa de 10 semanas para superar la ruptura y reencontrarte. Acompañado por Carla Viladot Psicóloga.'
     const ogImg =
       res.cover_resolved_url ||
       res.cover_image_url ||
       `https://api.carlaviladotpsicologia.com/api/og/resources/${encodeURIComponent(res.slug)}/cover.jpg`
 
-    document.title = title
     setMetaTag('meta[property="og:title"]', 'property', 'og:title', title)
     setMetaTag('meta[property="og:description"]', 'property', 'og:description', desc)
     setMetaTag('meta[property="og:image"]', 'property', 'og:image', ogImg)
     setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', title)
     setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', desc)
     setMetaTag('meta[name="twitter:image"]', 'name', 'twitter:image', ogImg)
-  } else {
-    document.title = 'Recursos Gratuitos · Carla Viladot | Vuelve a Ti'
   }
 }
 

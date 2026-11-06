@@ -30,9 +30,15 @@ const navSections = [
   },
   {
     name: 'Foro de Recursos & Leads',
-    subtitle: 'Reels, PDFs y Email Marketing',
+    subtitle: 'Reels, PDFs y Captación',
     to: '/admin/resources',
     icon: Sparkles,
+  },
+  {
+    name: 'Email Marketing & Embudo',
+    subtitle: 'Plantillas, campañas y 24/48/72h',
+    to: '/admin/marketing',
+    icon: Mail,
   },
   {
     name: 'Alumnos y Progreso',
@@ -241,7 +247,14 @@ function handleLogout() {
       </header>
 
       <!-- Main Router Content -->
-      <main class="flex-1 p-6 sm:p-8 lg:p-10 max-w-7xl w-full mx-auto">
+      <main
+        class="flex-1 w-full"
+        :class="
+          route.name === 'admin-marketing'
+            ? 'p-4 sm:p-6 lg:p-8 max-w-none'
+            : 'p-6 sm:p-8 lg:p-10 max-w-7xl mx-auto'
+        "
+      >
         <RouterView />
       </main>
     </div>

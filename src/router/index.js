@@ -16,6 +16,7 @@ import CalendarSettingsView from '@/views/admin/CalendarSettingsView.vue'
 import EmailSettingsView from '@/views/admin/EmailSettingsView.vue'
 import UsersManagementView from '@/views/admin/UsersManagementView.vue'
 import SettingsView from '@/views/admin/SettingsView.vue'
+import EmailMarketingView from '@/views/admin/EmailMarketingView.vue'
 
 const routes = [
   {
@@ -96,6 +97,16 @@ const routes = [
           requiresAuth: true,
           requiresAdmin: true,
           title: 'Foro de Recursos & Captación de Emails · Admin Vuelve a Ti',
+        },
+      },
+      {
+        path: 'marketing',
+        name: 'admin-marketing',
+        component: EmailMarketingView,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: 'Email Marketing & Secuencias · Admin Vuelve a Ti',
         },
       },
       {

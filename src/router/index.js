@@ -25,8 +25,7 @@ const routes = [
     name: 'landing',
     component: LandingView,
     meta: {
-      title:
-        'Vuelve a Ti | Terapia para Superar una Ruptura de Pareja · Carla Viladot Psicóloga',
+      title: 'Vuelve a Ti · Terapia Ruptura de Pareja | Carla Viladot',
     },
   },
   {
@@ -52,8 +51,7 @@ const routes = [
     name: 'resources-hub',
     component: ResourcesHubView,
     meta: {
-      title:
-        'Recursos Gratuitos para Superar una Ruptura de Pareja | Carla Viladot Psicóloga',
+      title: 'Recursos Gratuitos para Superar tu Ruptura | Carla Viladot',
     },
   },
   {

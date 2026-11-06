@@ -98,9 +98,9 @@ export function applySeoMeta({
 
 export function applyLandingSeo() {
   const title =
-    'Vuelve a Ti | Terapia para Superar una Ruptura de Pareja · Carla Viladot Psicóloga'
+    'Vuelve a Ti · Terapia Ruptura de Pareja | Carla Viladot'
   const description =
-    'Programa clínico de 10 semanas para superar tu ruptura de pareja, frenar la rumiación, sostener el contacto cero y recuperar tu estabilidad emocional. Con Carla Viladot, Psicóloga Sanitaria (Col. 29332).'
+    'Programa clínico de 10 semanas para superar tu ruptura de pareja, calmar la ansiedad y sostener el contacto cero. Carla Viladot, Psicóloga (Col. 29332).'
   const keywords =
     'terapia ruptura de pareja, psicóloga ruptura amorosa, cómo superar una ruptura de pareja, duelo amoroso, contacto cero psicología, ansiedad tras ruptura, apego ansioso, dependencia emocional, Carla Viladot psicóloga, programa Vuelve a Ti'
 
@@ -204,9 +204,9 @@ export function applyLandingSeo() {
 
 export function applyResourcesHubSeo(resourcesList = []) {
   const title =
-    'Recursos Gratuitos para Superar una Ruptura de Pareja | Carla Viladot Psicóloga'
+    'Recursos Gratuitos para Superar tu Ruptura | Carla Viladot'
   const description =
-    'Biblioteca de recursos terapéuticos gratuitos, guías de contacto cero, ejercicios para frenar la rumiación nocturna y cuadernos PDF descargables por Carla Viladot Psicóloga.'
+    'Guías clínicas gratuitas, ejercicios de contacto cero, regulación de ansiedad y cuadernos PDF para superar tu ruptura con Carla Viladot Psicóloga.'
   const keywords =
     'recursos gratuitos ruptura de pareja, guía contacto cero pdf, ejercicios superar ruptura, ansiedad tras ruptura, apego ansioso test, Carla Viladot psicóloga'
 

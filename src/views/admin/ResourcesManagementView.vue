@@ -125,6 +125,9 @@ function createEmptyResourceForm() {
     pdf_file_size_bytes: 0,
     pdf_preview_url: '',
     pdf_download_url: '',
+    meta_title: '',
+    meta_description: '',
+    seo_keywords: '',
   }
 }
 
@@ -160,6 +163,9 @@ function serializeFormForDirtyCheck(f) {
     pdf_title: f.pdf_title,
     pdf_storage_provider: f.pdf_storage_provider,
     pdf_object_key: f.pdf_object_key,
+    meta_title: f.meta_title || '',
+    meta_description: f.meta_description || '',
+    seo_keywords: f.seo_keywords || '',
   })
 }
 
@@ -167,6 +173,39 @@ const isDirty = computed(() => {
   if (!form.value.id || !savedSnapshot.value) return false
   return serializeFormForDirtyCheck(form.value) !== savedSnapshot.value
 })
+
+const googlePreviewTitle = computed(() => {
+  const custom = (form.value.meta_title || '').trim()
+  if (custom) return custom
+  const base = (form.value.title || 'Título del recurso').trim()
+  return `${base} · Recurso Gratuito | Carla Viladot Psicóloga`
+})
+
+const googlePreviewDescription = computed(() => {
+  const custom = (form.value.meta_description || '').trim()
+  const raw =
+    custom ||
+    (form.value.subtitle || '').trim() ||
+    (form.value.teaser_text || '').replace(/\s+/g, ' ').trim() ||
+    'Guía clínica y cuaderno terapéutico gratuito para superar tu ruptura de pareja con Carla Viladot Psicóloga.'
+  return raw.length > 160 ? `${raw.slice(0, 157).trim()}...` : raw
+})
+
+function autoGenerateSeoFields() {
+  const baseTitle = (form.value.title || '').trim()
+  const cat = (form.value.category || 'Duelo Afectivo').trim()
+  form.value.meta_title = `${baseTitle} | Carla Viladot Psicóloga`.slice(0, 65)
+  const rawDesc =
+    (form.value.subtitle || '').trim() ||
+    (form.value.teaser_text || '').replace(/\s+/g, ' ').trim()
+  form.value.meta_description = (
+    rawDesc
+      ? `${rawDesc.slice(0, 120).trim()}. Descarga gratis la guía de Carla Viladot.`
+      : `Guía práctica gratuita sobre ${baseTitle.toLowerCase()} para superar tu ruptura de pareja. Por Carla Viladot Psicóloga.`
+  ).slice(0, 158)
+  form.value.seo_keywords = `${baseTitle.toLowerCase()}, ${cat.toLowerCase()}, terapia ruptura de pareja, superar una ruptura, contacto cero, psicóloga ruptura amorosa, Carla Viladot`
+  toast.success('Campos SEO optimizados automáticamente. Recuerda pulsar Guardar.')
+}
 
 function populateFormFromResource(res) {
   if (!res) {
@@ -213,6 +252,9 @@ function populateFormFromResource(res) {
     pdf_file_size_bytes: res.pdf_file_size_bytes || 0,
     pdf_preview_url: res.pdf_preview_url || '',
     pdf_download_url: res.pdf_download_url || '',
+    meta_title: res.meta_title || '',
+    meta_description: res.meta_description || '',
+    seo_keywords: res.seo_keywords || '',
   }
   savedSnapshot.value = serializeFormForDirtyCheck(form.value)
 }
@@ -1263,6 +1305,140 @@ onMounted(async () => {
                     class="w-full px-3 py-1.5 rounded-lg bg-white border border-[#2C3E35]/12 text-xs"
                   />
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Bloque 5: Posicionamiento SEO en Google & Vista Previa de Buscador -->
+          <section class="bg-white rounded-3xl border border-[#2C3E35]/10 p-6 space-y-4 shadow-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#2C3E35]/8 pb-3">
+              <div>
+                <div class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#4A6B5D] mb-0.5">
+                  <Search class="w-3.5 h-3.5 text-[#D9826C]" />
+                  <span>Indexación automática en Sitemap XML + Schema.org</span>
+                </div>
+                <h2 class="font-editorial text-2xl font-semibold text-[#24332B]">
+                  5. Posicionamiento SEO en Google (Opcional)
+                </h2>
+                <p class="text-xs text-[#2C3E35]/60">
+                  Si los dejas en blanco, el sistema genera el SEO automáticamente a partir del título y subtítulo.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                @click="autoGenerateSeoFields"
+                class="px-3.5 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#4A6B5D]/10 border border-[#2C3E35]/12 text-xs font-semibold text-[#24332B] inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <Sparkles class="w-3.5 h-3.5 text-[#D9826C]" />
+                <span>Autocompletar SEO óptimo</span>
+              </button>
+            </div>
+
+            <!-- Simulación real del resultado en Google -->
+            <div class="p-4 rounded-2xl bg-[#FAF8F5] border border-[#2C3E35]/10 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[#2C3E35]/50">
+                  Vista previa en los resultados de Google
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                  :class="
+                    form.is_published
+                      ? 'bg-emerald-500/15 text-emerald-800'
+                      : 'bg-amber-500/15 text-amber-800'
+                  "
+                >
+                  {{ form.is_published ? 'Indexable en Sitemap.xml' : 'Oculto de Google' }}
+                </span>
+              </div>
+
+              <div class="bg-white rounded-xl p-3.5 border border-[#2C3E35]/8 space-y-1">
+                <div class="flex items-center gap-2 text-xs text-[#202124]">
+                  <span class="w-5 h-5 rounded-full bg-[#24332B] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                    CV
+                  </span>
+                  <div class="truncate">
+                    <div class="text-[12px] font-medium text-[#202124] leading-tight">
+                      Carla Viladot Psicóloga · Vuelve a Ti
+                    </div>
+                    <div class="text-[11px] text-[#4d5156] truncate">
+                      https://www.carlaviladotpsicologia.com › recursos › {{ form.slug || 'recurso' }}
+                    </div>
+                  </div>
+                </div>
+                <div class="text-[17px] font-medium text-[#1a0dab] hover:underline leading-snug pt-0.5 truncate">
+                  {{ googlePreviewTitle }}
+                </div>
+                <p class="text-[13px] text-[#4d5156] leading-relaxed line-clamp-2">
+                  {{ googlePreviewDescription }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Campos editables de SEO -->
+            <div class="space-y-3.5">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-bold text-[#2C3E35]/80">
+                    Título SEO en Google (Meta Title)
+                  </label>
+                  <span
+                    class="text-[11px] font-semibold"
+                    :class="
+                      (form.meta_title || '').length > 65
+                        ? 'text-amber-600'
+                        : 'text-[#2C3E35]/50'
+                    "
+                  >
+                    {{ (form.meta_title || '').length }} / 60 recomendados
+                  </span>
+                </div>
+                <input
+                  v-model="form.meta_title"
+                  type="text"
+                  maxlength="255"
+                  class="w-full px-4 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/15 text-xs sm:text-sm focus:outline-none focus:border-[#4A6B5D]"
+                  :placeholder="`${form.title || 'Título del recurso'} · Recurso Gratuito | Carla Viladot Psicóloga`"
+                />
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-xs font-bold text-[#2C3E35]/80">
+                    Descripción para Google (Meta Description)
+                  </label>
+                  <span
+                    class="text-[11px] font-semibold"
+                    :class="
+                      (form.meta_description || '').length > 160
+                        ? 'text-amber-600'
+                        : 'text-[#2C3E35]/50'
+                    "
+                  >
+                    {{ (form.meta_description || '').length }} / 155 recomendados
+                  </span>
+                </div>
+                <textarea
+                  v-model="form.meta_description"
+                  rows="2"
+                  maxlength="350"
+                  class="w-full px-4 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/15 text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-[#4A6B5D]"
+                  :placeholder="form.subtitle || 'Resumen atractivo de 1 o 2 frases para invitar a hacer clic en Google...'"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-[#2C3E35]/80 mb-1">
+                  Palabras clave objetivo (separadas por comas)
+                </label>
+                <input
+                  v-model="form.seo_keywords"
+                  type="text"
+                  maxlength="400"
+                  class="w-full px-4 py-2 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/15 text-xs focus:outline-none focus:border-[#4A6B5D]"
+                  placeholder="Ej: contacto cero, ansiedad nocturna tras ruptura, cómo superar a mi ex, Carla Viladot"
+                />
               </div>
             </div>
           </section>

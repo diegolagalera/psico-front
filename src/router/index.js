@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { applySeoMeta, applyLandingSeo } from '@/composables/useSeo'
 
 import LandingView from '@/views/LandingView.vue'
 import LoginView from '@/views/LoginView.vue'
@@ -23,7 +24,10 @@ const routes = [
     path: '/',
     name: 'landing',
     component: LandingView,
-    meta: { title: 'Vuelve a Ti · Psicología y Reconstrucción Personal' },
+    meta: {
+      title:
+        'Vuelve a Ti | Terapia para Superar una Ruptura de Pareja · Carla Viladot Psicóloga',
+    },
   },
   {
     path: '/aviso-legal',
@@ -47,13 +51,16 @@ const routes = [
     path: '/recursos',
     name: 'resources-hub',
     component: ResourcesHubView,
-    meta: { title: 'Foro de Recursos Gratuitos · Vuelve a Ti' },
+    meta: {
+      title:
+        'Recursos Gratuitos para Superar una Ruptura de Pareja | Carla Viladot Psicóloga',
+    },
   },
   {
     path: '/recursos/:slug',
     name: 'resource-detail',
     component: ResourcesHubView,
-    meta: { title: 'Recurso Terapéutico · Vuelve a Ti' },
+    meta: { title: 'Recurso Terapéutico Gratuito · Carla Viladot Psicóloga' },
   },
   {
     path: '/login',
@@ -183,6 +190,26 @@ router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin)
   const guestOnly = to.matched.some((record) => record.meta.guestOnly)
+
+  if (to.name === 'landing') {
+    applyLandingSeo()
+  } else if (requiresAuth || requiresAdmin || guestOnly) {
+    applySeoMeta({
+      title: to.meta?.title || 'Área Privada · Vuelve a Ti',
+      canonicalPath: to.path,
+      robots: 'noindex, nofollow',
+    })
+  } else if (
+    to.name === 'legal-notice' ||
+    to.name === 'privacy-policy' ||
+    to.name === 'cookies-policy'
+  ) {
+    applySeoMeta({
+      title: to.meta?.title,
+      canonicalPath: to.path,
+      robots: 'index, follow',
+    })
+  }
 
   // 1. Si requiere autenticación y el JWT no existe o ha expirado -> redirigir a /login
   if (requiresAuth && !authStore.isAuthenticated) {

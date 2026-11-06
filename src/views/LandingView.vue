@@ -1,8 +1,9 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
+import { applyLandingSeo } from '@/composables/useSeo'
 import {
   Sparkles,
   HeartHandshake,
@@ -41,6 +42,10 @@ import {
   Instagram,
 } from 'lucide-vue-next'
 import { toast } from '@/composables/useToast'
+
+onMounted(() => {
+  applyLandingSeo()
+})
 
 const authStore = useAuthStore()
 const mobileMenuOpen = ref(false)

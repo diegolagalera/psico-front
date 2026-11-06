@@ -31,6 +31,7 @@ import {
   Menu,
 } from 'lucide-vue-next'
 import { useCookieConsent } from '@/composables/useCookieConsent'
+import { applyResourcesHubSeo, applyResourceDetailSeo } from '@/composables/useSeo'
 import PdfViewer from '@/components/PdfViewer.vue'
 
 const LEAD_STORAGE_KEY = 'vuelve_a_ti_lead'
@@ -143,6 +144,7 @@ async function fetchHubList() {
       params: email ? { lead_email: email } : {},
     })
     resources.value = data.resources || []
+    applyResourcesHubSeo(resources.value)
     if (data.lead) {
       saveCachedLead(data.lead)
     }
@@ -153,36 +155,11 @@ async function fetchHubList() {
   }
 }
 
-function setMetaTag(selector, attrName, attrVal, content) {
-  let el = document.querySelector(selector)
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute(attrName, attrVal)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
-}
-
 function updateDocumentMeta(res) {
-  if (typeof document === 'undefined') return
-  const title = 'Vuelve a Ti | Programa de 10 semanas para superar tu ruptura'
-  document.title = title
   if (res && res.title) {
-    const desc =
-      res.subtitle ||
-      res.teaser_text ||
-      'Programa de 10 semanas para superar la ruptura y reencontrarte. Acompañado por Carla Viladot Psicóloga.'
-    const ogImg =
-      res.cover_resolved_url ||
-      res.cover_image_url ||
-      `https://api.carlaviladotpsicologia.com/api/og/resources/${encodeURIComponent(res.slug)}/cover.jpg`
-
-    setMetaTag('meta[property="og:title"]', 'property', 'og:title', title)
-    setMetaTag('meta[property="og:description"]', 'property', 'og:description', desc)
-    setMetaTag('meta[property="og:image"]', 'property', 'og:image', ogImg)
-    setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', title)
-    setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', desc)
-    setMetaTag('meta[name="twitter:image"]', 'name', 'twitter:image', ogImg)
+    applyResourceDetailSeo(res)
+  } else {
+    applyResourcesHubSeo(resources.value)
   }
 }
 

@@ -61,8 +61,11 @@ const previewDevice = ref('desktop') // 'desktop' | 'mobile'
 // Subidas de archivos en curso
 const uploadingCover = ref(false)
 const uploadingPdf = ref(false)
+const uploadPdfProgress = ref(0)
 const uploadingVideo = ref(false)
+const uploadVideoProgress = ref(0)
 const uploadingAudio = ref(false)
+const uploadAudioProgress = ref(0)
 const uploadingGallery = ref(false)
 
 // Visor Modal de PDF
@@ -424,14 +427,90 @@ async function handleDeleteResource() {
 }
 
 // --- Subida de Archivos Multimedia (Portada, PDF, Vídeo, Audio, Fotos Inline) ---
-async function uploadFileHelper(file, folder) {
-  const fd = new FormData()
-  fd.append('file', file)
-  fd.append('folder', folder)
-  const { data } = await api.post('/admin/storage/upload', fd, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  return data.media
+const CHUNK_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB por fragmento para vídeos/archivos grandes
+
+async function uploadFileHelper(file, folder, onProgress = null) {
+  if (onProgress) onProgress(1)
+
+  // Para archivos menores o iguales a 5 MB: subida directa con timeout ilimitado
+  if (file.size <= CHUNK_SIZE_BYTES) {
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('folder', folder)
+    const { data } = await api.post('/admin/storage/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0,
+      onUploadProgress: (evt) => {
+        if (onProgress && evt.total) {
+          onProgress(Math.max(1, Math.min(99, Math.round((evt.loaded * 100) / evt.total))))
+        }
+      },
+    })
+    if (onProgress) onProgress(100)
+    return data.media
+  }
+
+  // Para vídeos o archivos mayores de 5 MB: subida por fragmentos de 5 MB
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE_BYTES)
+  const uploadId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  let finalMedia = null
+
+  for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+    const start = chunkIndex * CHUNK_SIZE_BYTES
+    const end = Math.min(start + CHUNK_SIZE_BYTES, file.size)
+    const blob = file.slice(start, end)
+
+    const fd = new FormData()
+    fd.append('chunk', blob, file.name)
+    fd.append('upload_id', uploadId)
+    fd.append('chunk_index', String(chunkIndex))
+    fd.append('total_chunks', String(totalChunks))
+    fd.append('filename', file.name)
+    fd.append('mime_type', file.type || 'video/mp4')
+    fd.append('folder', folder)
+
+    const { data } = await api.post('/admin/storage/upload-chunk', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0,
+      onUploadProgress: (evt) => {
+        if (onProgress && evt.total) {
+          const chunkFraction = evt.loaded / evt.total
+          const overallPct = Math.round(((chunkIndex + chunkFraction) / totalChunks) * 100)
+          onProgress(Math.max(1, Math.min(99, overallPct)))
+        }
+      },
+    })
+
+    if (data?.completed && data?.media) {
+      finalMedia = data.media
+    }
+  }
+
+  if (onProgress) onProgress(100)
+  if (!finalMedia) {
+    throw new Error('No se recibió confirmación final del archivo subido.')
+  }
+  return finalMedia
+}
+
+async function autoPersistResourceMedia(partialPayload) {
+  if (!form.value.id) return
+  try {
+    const { data } = await api.put(
+      `/admin/public-resources/${form.value.id}`,
+      partialPayload
+    )
+    const updated = data?.resource
+    if (updated) {
+      const idx = resources.value.findIndex((r) => r.id === updated.id)
+      if (idx !== -1) {
+        resources.value[idx] = updated
+      }
+      savedSnapshot.value = serializeFormForDirtyCheck(form.value)
+    }
+  } catch {
+    // Si falla el autoguardado silencioso, el botón inferior sigue disponible
+  }
 }
 
 async function onCoverFileSelected(e) {
@@ -443,7 +522,11 @@ async function onCoverFileSelected(e) {
     form.value.cover_storage_provider = media.storage_provider
     form.value.cover_object_key = media.object_key
     form.value.cover_resolved_url = media.preview_url || form.value.cover_image_url
-    toast.success('Imagen de portada subida. Recuerda pulsar Guardar en la barra inferior.')
+    await autoPersistResourceMedia({
+      cover_storage_provider: form.value.cover_storage_provider,
+      cover_object_key: form.value.cover_object_key,
+    })
+    toast.success('Imagen de portada subida y guardada en el recurso.')
   } catch (err) {
     toast.error(err.response?.data?.error || 'Error al subir la portada.')
   } finally {
@@ -456,8 +539,11 @@ async function onPdfFileSelected(e) {
   const file = e.target.files?.[0]
   if (!file) return
   uploadingPdf.value = true
+  uploadPdfProgress.value = 1
   try {
-    const media = await uploadFileHelper(file, 'public_resources/pdfs')
+    const media = await uploadFileHelper(file, 'public_resources/pdfs', (pct) => {
+      uploadPdfProgress.value = pct
+    })
     form.value.pdf_storage_provider = media.storage_provider
     form.value.pdf_object_key = media.object_key
     form.value.pdf_original_name = media.original_filename
@@ -466,11 +552,19 @@ async function onPdfFileSelected(e) {
       form.value.pdf_title = media.original_filename
     }
     form.value.pdf_preview_url = media.preview_url || ''
-    toast.success('PDF subido y listo en la previsualización. Pulsa Guardar abajo.')
+    await autoPersistResourceMedia({
+      pdf_title: form.value.pdf_title,
+      pdf_storage_provider: form.value.pdf_storage_provider,
+      pdf_object_key: form.value.pdf_object_key,
+      pdf_original_name: form.value.pdf_original_name,
+      pdf_file_size_bytes: form.value.pdf_file_size_bytes,
+    })
+    toast.success('PDF subido y guardado automáticamente en el recurso.')
   } catch (err) {
     toast.error(err.response?.data?.error || 'Error al subir el PDF.')
   } finally {
     uploadingPdf.value = false
+    uploadPdfProgress.value = 0
     e.target.value = ''
   }
 }
@@ -479,18 +573,28 @@ async function onVideoFileSelected(e) {
   const file = e.target.files?.[0]
   if (!file) return
   uploadingVideo.value = true
+  uploadVideoProgress.value = 1
   try {
-    const media = await uploadFileHelper(file, 'public_resources/videos')
+    const media = await uploadFileHelper(file, 'public_resources/videos', (pct) => {
+      uploadVideoProgress.value = pct
+    })
     form.value.video_storage_provider = media.storage_provider
     form.value.video_object_key = media.object_key
     form.value.video_original_name = media.original_filename
     form.value.video_mime_type = media.mime_type || 'video/mp4'
     form.value.video_stream_url = media.preview_url || ''
-    toast.success('Vídeo subido correctamente. Pulsa Guardar en la barra inferior.')
+    await autoPersistResourceMedia({
+      video_storage_provider: form.value.video_storage_provider,
+      video_object_key: form.value.video_object_key,
+      video_original_name: form.value.video_original_name,
+      video_mime_type: form.value.video_mime_type,
+    })
+    toast.success('Vídeo subido y vinculado automáticamente al recurso.')
   } catch (err) {
     toast.error(err.response?.data?.error || 'Error al subir el vídeo.')
   } finally {
     uploadingVideo.value = false
+    uploadVideoProgress.value = 0
     e.target.value = ''
   }
 }
@@ -499,8 +603,11 @@ async function onAudioFileSelected(e) {
   const file = e.target.files?.[0]
   if (!file) return
   uploadingAudio.value = true
+  uploadAudioProgress.value = 1
   try {
-    const media = await uploadFileHelper(file, 'public_resources/audios')
+    const media = await uploadFileHelper(file, 'public_resources/audios', (pct) => {
+      uploadAudioProgress.value = pct
+    })
     form.value.audio_storage_provider = media.storage_provider
     form.value.audio_object_key = media.object_key
     form.value.audio_original_name = media.original_filename
@@ -509,11 +616,19 @@ async function onAudioFileSelected(e) {
       form.value.audio_title = media.original_filename
     }
     form.value.audio_stream_url = media.preview_url || ''
-    toast.success('Audio subido correctamente. Pulsa Guardar en la barra inferior.')
+    await autoPersistResourceMedia({
+      audio_title: form.value.audio_title,
+      audio_storage_provider: form.value.audio_storage_provider,
+      audio_object_key: form.value.audio_object_key,
+      audio_original_name: form.value.audio_original_name,
+      audio_mime_type: form.value.audio_mime_type,
+    })
+    toast.success('Audio subido y guardado automáticamente en el recurso.')
   } catch (err) {
     toast.error(err.response?.data?.error || 'Error al subir el audio.')
   } finally {
     uploadingAudio.value = false
+    uploadAudioProgress.value = 0
     e.target.value = ''
   }
 }
@@ -1052,7 +1167,15 @@ onMounted(async () => {
                   class="px-4 py-2 rounded-xl bg-[#D9826C] hover:bg-[#c56e58] text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-colors"
                 >
                   <Upload class="w-3.5 h-3.5" />
-                  <span>{{ uploadingPdf ? 'Subiendo PDF...' : form.pdf_object_key ? 'Cambiar PDF' : 'Subir PDF' }}</span>
+                  <span>
+                    {{
+                      uploadingPdf
+                        ? `Subiendo PDF... ${uploadPdfProgress}%`
+                        : form.pdf_object_key
+                          ? 'Cambiar PDF'
+                          : 'Subir PDF'
+                    }}
+                  </span>
                   <input
                     type="file"
                     accept=".pdf,application/pdf"
@@ -1061,6 +1184,12 @@ onMounted(async () => {
                     @change="onPdfFileSelected"
                   />
                 </label>
+              </div>
+              <div v-if="uploadingPdf" class="w-full h-1.5 bg-[#2C3E35]/10 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-[#D9826C] transition-all duration-200"
+                  :style="{ width: `${uploadPdfProgress}%` }"
+                ></div>
               </div>
             </div>
 
@@ -1096,7 +1225,15 @@ onMounted(async () => {
                   class="px-4 py-2 rounded-xl bg-[#24332B] hover:bg-[#4A6B5D] text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-colors"
                 >
                   <Upload class="w-3.5 h-3.5 text-[#D9826C]" />
-                  <span>{{ uploadingVideo ? 'Subiendo MP4...' : 'Subir Vídeo MP4' }}</span>
+                  <span>
+                    {{
+                      uploadingVideo
+                        ? `Subiendo MP4... ${uploadVideoProgress}%`
+                        : form.video_object_key
+                          ? 'Cambiar Vídeo MP4'
+                          : 'Subir Vídeo MP4'
+                    }}
+                  </span>
                   <input
                     type="file"
                     accept="video/*"
@@ -1106,6 +1243,23 @@ onMounted(async () => {
                   />
                 </label>
               </div>
+              <div v-if="uploadingVideo" class="space-y-1">
+                <div class="w-full h-2 bg-[#2C3E35]/10 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-[#4A6B5D] transition-all duration-200"
+                    :style="{ width: `${uploadVideoProgress}%` }"
+                  ></div>
+                </div>
+                <p class="text-[11px] text-[#4A6B5D] font-medium">
+                  Subiendo vídeo por fragmentos seguros ({{ uploadVideoProgress }}%)... No cierres esta pestaña.
+                </p>
+              </div>
+              <p
+                v-else-if="form.video_object_key"
+                class="text-[11px] text-emerald-700 font-medium truncate"
+              >
+                ✓ Vídeo subido: {{ form.video_original_name || form.video_object_key }}
+              </p>
             </div>
 
             <!-- Audio / Meditación Guiada -->
@@ -1139,7 +1293,15 @@ onMounted(async () => {
                   class="px-4 py-2 rounded-xl bg-[#4A6B5D] hover:bg-[#3a564a] text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 transition-colors"
                 >
                   <Upload class="w-3.5 h-3.5" />
-                  <span>{{ uploadingAudio ? 'Subiendo...' : 'Subir Audio MP3' }}</span>
+                  <span>
+                    {{
+                      uploadingAudio
+                        ? `Subiendo... ${uploadAudioProgress}%`
+                        : form.audio_object_key
+                          ? 'Cambiar Audio'
+                          : 'Subir Audio MP3'
+                    }}
+                  </span>
                   <input
                     type="file"
                     accept="audio/*"
@@ -1148,6 +1310,12 @@ onMounted(async () => {
                     @change="onAudioFileSelected"
                   />
                 </label>
+              </div>
+              <div v-if="uploadingAudio" class="w-full h-1.5 bg-[#2C3E35]/10 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-[#4A6B5D] transition-all duration-200"
+                  :style="{ width: `${uploadAudioProgress}%` }"
+                ></div>
               </div>
             </div>
           </section>

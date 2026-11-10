@@ -572,30 +572,66 @@ async function handleUploadLessonVideo(lesson, event) {
       }
     })
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append(
-      'folder',
-      `courses/course_${selectedCourseId.value}/lessons/lesson_${lesson.id}/video`
-    )
+    const folder = `courses/course_${selectedCourseId.value}/lessons/lesson_${lesson.id}/video`
+    const CHUNK_SIZE = 5 * 1024 * 1024
+    let media = null
 
-    const { data: uploadRes } = await api.post(
-      '/admin/storage/upload',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 0,
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            uploadingState[uploadKey] = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            )
-          }
-        },
+    if (file.size <= CHUNK_SIZE) {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', folder)
+
+      const { data: uploadRes } = await api.post(
+        '/admin/storage/upload',
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 0,
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              uploadingState[uploadKey] = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              )
+            }
+          },
+        }
+      )
+      media = uploadRes.media
+    } else {
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
+      const uploadId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * CHUNK_SIZE
+        const end = Math.min(start + CHUNK_SIZE, file.size)
+        const blob = file.slice(start, end)
+
+        const fd = new FormData()
+        fd.append('chunk', blob, file.name)
+        fd.append('upload_id', uploadId)
+        fd.append('chunk_index', String(chunkIndex))
+        fd.append('total_chunks', String(totalChunks))
+        fd.append('filename', file.name)
+        fd.append('mime_type', file.type || 'video/mp4')
+        fd.append('folder', folder)
+
+        const { data } = await api.post('/admin/storage/upload-chunk', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 0,
+          onUploadProgress: (evt) => {
+            if (evt.total) {
+              const chunkFraction = evt.loaded / evt.total
+              uploadingState[uploadKey] = Math.max(
+                1,
+                Math.min(99, Math.round(((chunkIndex + chunkFraction) / totalChunks) * 100))
+              )
+            }
+          },
+        })
+        if (data?.completed && data?.media) {
+          media = data.media
+        }
       }
-    )
-
-    const media = uploadRes.media
+    }
     await api.put(`/admin/lessons/${lesson.id}`, {
       has_video: true,
       video_storage_provider: media.storage_provider,

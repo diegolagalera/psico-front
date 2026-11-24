@@ -1070,6 +1070,9 @@ onMounted(async () => {
                     type="text"
                     class="w-full px-3.5 py-2 rounded-xl bg-[#FAF8F5] border border-[#2C3E35]/15 text-xs font-mono text-[#4A6B5D]"
                   />
+                  <p class="mt-1 text-[10px] leading-snug text-[#2C3E35]/55">
+                    Sin tildes ni eñes (se quitan solas). Si lo cambias, la dirección antigua seguirá funcionando y redirigirá a la nueva.
+                  </p>
                 </div>
 
                 <div class="flex items-center gap-4 pt-5">

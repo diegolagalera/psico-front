@@ -172,10 +172,28 @@ if (routeSlug.value && resourcesError.value) {
   throw createError({ statusCode: 404, statusMessage: 'Recurso no encontrado', fatal: true })
 }
 
+// Dirección antigua de un recurso que cambió de slug: redirección permanente (301)
+function movedSlug(payload) {
+  return payload?.kind === 'detail' ? payload.data?.moved_to_slug || '' : ''
+}
+// Se conservan los parámetros (?utm_source=… de ManyChat/Instagram) y el #ancla
+if (movedSlug(resourcesPayload.value)) {
+  await navigateTo(
+    { path: `/recursos/${movedSlug(resourcesPayload.value)}`, query: route.query, hash: route.hash },
+    { redirectCode: 301, replace: true }
+  )
+}
+
 const loading = computed(() => resourcesStatus.value === 'pending' && !resourcesPayload.value)
 
 function applyResourcesPayload(payload) {
   if (!payload) return
+  if (movedSlug(payload)) {
+    if (import.meta.client) {
+      router.replace({ path: `/recursos/${movedSlug(payload)}`, query: route.query, hash: route.hash })
+    }
+    return
+  }
   formError.value = ''
   if (payload.kind === 'detail') {
     currentResource.value = payload.data.resource

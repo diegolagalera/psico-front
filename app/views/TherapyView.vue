@@ -1,10 +1,10 @@
 <script setup>
+import SiteHeader from '@/components/SiteHeader.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
 import { reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   Feather,
-  Menu,
-  X,
   MessageCircle,
   Sprout,
   Heart,
@@ -17,17 +17,6 @@ import {
 } from 'lucide-vue-next'
 import api from '@/services/api'
 import { toast } from '@/composables/useToast'
-
-const mobileMenuOpen = ref(false)
-
-const navLinks = [
-  { label: 'Inicio', to: '/' },
-  { label: 'Programa Vuelve a Ti', to: '/#el-programa' },
-  { label: 'Terapia', to: '/terapia-online', active: true },
-  { label: 'Sobre mí', to: '/#sobre-mi' },
-  { label: 'Recursos', to: '/recursos' },
-  { label: 'Contacto', to: '/#contacto' },
-]
 
 const pillars = [
   { icon: MessageCircle, title: 'Escucha activa', text: 'Te escucho sin juicio, con calma y una atención real.' },
@@ -154,66 +143,7 @@ async function submitForm() {
 <template>
   <div class="min-h-screen bg-[#FAF8F5] text-[#2C3E35]">
     <!-- CABECERA -->
-    <header class="sticky top-0 z-50 w-full bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE4DC]">
-      <div class="max-w-[1200px] mx-auto px-5 sm:px-6 h-20 flex items-center justify-between gap-4">
-        <RouterLink to="/" class="flex items-center gap-3 shrink-0 text-[#2C3E35]">
-          <span class="w-10 h-10 rounded-xl bg-[#4A6B5D] text-[#FAF8F5] flex items-center justify-center">
-            <Feather class="w-5 h-5" aria-hidden="true" />
-          </span>
-          <span class="font-editorial text-2xl font-semibold">Carla Viladot</span>
-        </RouterLink>
-
-        <nav aria-label="Principal" class="hidden lg:flex items-center gap-6 text-sm">
-          <RouterLink
-            v-for="link in navLinks"
-            :key="link.label"
-            :to="link.to"
-            class="whitespace-nowrap text-[#2C3E35] hover:text-[#4A6B5D] transition-colors"
-            :class="link.active ? 'font-semibold border-b-2 border-[#C0674F] pb-0.5' : ''"
-            :aria-current="link.active ? 'page' : undefined"
-          >
-            {{ link.label }}
-          </RouterLink>
-          <a
-            href="#reservar"
-            class="whitespace-nowrap bg-[#A9553F] hover:bg-[#8f4533] text-white font-semibold px-5 py-3 rounded-2xl transition-colors"
-          >
-            Reservar sesión
-          </a>
-        </nav>
-
-        <button
-          type="button"
-          class="lg:hidden p-2.5 rounded-xl hover:bg-[#4A6B5D]/10"
-          :aria-label="mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'"
-          :aria-expanded="mobileMenuOpen"
-          @click="mobileMenuOpen = !mobileMenuOpen"
-        >
-          <X v-if="mobileMenuOpen" class="w-6 h-6" />
-          <Menu v-else class="w-6 h-6" />
-        </button>
-      </div>
-
-      <div v-if="mobileMenuOpen" class="lg:hidden border-t border-[#EAE4DC] bg-[#FAF8F5] px-6 py-5 space-y-1">
-        <RouterLink
-          v-for="link in navLinks"
-          :key="link.label"
-          :to="link.to"
-          class="block py-2.5 text-base"
-          :class="link.active ? 'font-semibold text-[#A9553F]' : 'text-[#2C3E35]'"
-          @click="mobileMenuOpen = false"
-        >
-          {{ link.label }}
-        </RouterLink>
-        <a
-          href="#reservar"
-          class="block mt-3 text-center bg-[#A9553F] text-white font-semibold px-5 py-3 rounded-2xl"
-          @click="mobileMenuOpen = false"
-        >
-          Reservar sesión
-        </a>
-      </div>
-    </header>
+    <SiteHeader cta-to="#reservar" cta-label="Reservar sesión" />
 
     <main>
       <!-- HERO -->
@@ -727,24 +657,7 @@ async function submitForm() {
     </main>
 
     <!-- PIE -->
-    <footer class="bg-[#2C3E35] text-[#FAF8F5]/80">
-      <div class="max-w-[1200px] mx-auto px-5 sm:px-6 py-12 flex flex-wrap justify-between gap-6 text-sm">
-        <div class="flex flex-col gap-1.5">
-          <span class="font-editorial text-2xl font-semibold text-[#FAF8F5]">Carla Viladot</span>
-          <span>Psicóloga General Sanitaria · Col. 29332</span>
-          <span>Terapia online para toda España · Castellano y catalán</span>
-        </div>
-        <nav aria-label="Pie" class="flex flex-wrap gap-5 items-start">
-          <RouterLink to="/#el-programa" class="text-[#FAF8F5] hover:underline">Programa Vuelve a Ti</RouterLink>
-          <RouterLink to="/terapia-online" class="text-[#FAF8F5] hover:underline">Terapia</RouterLink>
-          <RouterLink to="/recursos" class="text-[#FAF8F5] hover:underline">Recursos</RouterLink>
-          <a href="https://www.instagram.com/carlaviladot.psicologa/" target="_blank" rel="noopener" class="text-[#FAF8F5] hover:underline">Instagram</a>
-          <RouterLink to="/aviso-legal" class="text-[#FAF8F5] hover:underline">Aviso legal</RouterLink>
-          <RouterLink to="/privacidad" class="text-[#FAF8F5] hover:underline">Privacidad</RouterLink>
-          <RouterLink to="/cookies" class="text-[#FAF8F5] hover:underline">Cookies</RouterLink>
-        </nav>
-      </div>
-    </footer>
+    <SiteFooter />
   </div>
 </template>
 

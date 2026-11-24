@@ -22,3 +22,9 @@ body {
 h1, h2, h3, .font-editorial {
   font-family: var(--font-serif);
 }
+
+/* Al saltar a una sección (#el-programa, #reservar…) la cabecera fija no la tapa */
+section[id],
+div[id] {
+  scroll-margin-top: 5.5rem;
+}

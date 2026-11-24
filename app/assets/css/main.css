@@ -28,3 +28,39 @@ section[id],
 div[id] {
   scroll-margin-top: 5.5rem;
 }
+
+/* ==========================================================
+   Animaciones suaves de la web pública
+   Todas se desactivan con «reducir movimiento» del sistema.
+   ========================================================== */
+@keyframes cv-zoom { from { transform: scale(1); } to { transform: scale(1.08); } }
+@keyframes cv-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* Foto de portada que «respira» */
+.cv-zoom { animation: cv-zoom 26s ease-in-out infinite alternate; transform-origin: center; }
+
+/* Entrada escalonada del texto de portada */
+.cv-hero > * { animation: cv-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.cv-hero > *:nth-child(2) { animation-delay: 0.12s; }
+.cv-hero > *:nth-child(3) { animation-delay: 0.24s; }
+.cv-hero > *:nth-child(4) { animation-delay: 0.36s; }
+.cv-hero > *:nth-child(5) { animation-delay: 0.48s; }
+
+/* Bloques que aparecen al hacer scroll (directiva v-reveal) */
+.cv-reveal-pending { opacity: 0; transform: translateY(18px); }
+.cv-reveal-in { opacity: 1; transform: none; transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+/* Iconos que se dibujan con un trazo (directiva v-reveal="'draw'") */
+.cv-draw-pending path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.cv-draw-in path { stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 2s ease-out 0.2s; }
+
+/* Tarjetas que se elevan al pasar el ratón */
+.cv-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.cv-card:hover { transform: translateY(-6px); box-shadow: 0 20px 44px rgba(44, 62, 53, 0.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-zoom, .cv-hero > * { animation: none; }
+  .cv-reveal-pending { opacity: 1; transform: none; }
+  .cv-draw-pending path { stroke-dashoffset: 0; }
+  .cv-card, .cv-card:hover { transition: none; transform: none; }
+}

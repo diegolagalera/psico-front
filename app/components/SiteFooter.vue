@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import { Feather, Lock, Instagram } from 'lucide-vue-next'
+import WhatsAppButton from '@/components/WhatsAppButton.vue'
+import { WHATSAPP_URL } from '@/constants/contact'
 
 // Pie común de la web pública
 function openCookieSettings() {
@@ -9,77 +10,40 @@ function openCookieSettings() {
 </script>
 
 <template>
-  <footer class="bg-[#2C3E35] text-[#FAF8F5] py-14 border-t border-white/10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-white/10">
-        <div class="md:col-span-2 space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-[#4A6B5D] text-white flex items-center justify-center">
-              <Feather class="w-4 h-4" />
-            </div>
-            <span class="font-editorial text-2xl font-semibold">Vuelve a Ti</span>
-          </div>
-          <p class="text-sm text-[#FAF8F5]/70 max-w-sm leading-relaxed">
-            Programa de 10 semanas para superar la ruptura y reencontrarte, y terapia online individual y de pareja.
-            Carla Viladot · Psicóloga General Sanitaria (Col. 29332).
-          </p>
-          <p class="text-sm text-[#FAF8F5]/70">Terapia online para toda España · Castellano y catalán</p>
-        </div>
-
-        <div class="space-y-2 text-sm">
-          <p class="font-semibold text-[#D9826C] uppercase tracking-wider text-xs">Navegación</p>
-          <ul class="space-y-2 text-[#FAF8F5]/75">
-            <li><RouterLink to="/" class="hover:text-white">Inicio</RouterLink></li>
-            <li><RouterLink to="/#el-programa" class="hover:text-white">Programa</RouterLink></li>
-            <li><RouterLink to="/terapia-online" class="hover:text-white">Terapia</RouterLink></li>
-            <li><RouterLink to="/#sobre-mi" class="hover:text-white">Sobre mí</RouterLink></li>
-            <li><RouterLink to="/#contacto" class="hover:text-white">Contacto</RouterLink></li>
-            <li><RouterLink to="/recursos" class="hover:text-white">Recursos Gratuitos</RouterLink></li>
-          </ul>
-        </div>
-
-        <div class="space-y-2 text-sm">
-          <p class="font-semibold text-[#D9826C] uppercase tracking-wider text-xs">Área Privada & Legal</p>
-          <ul class="space-y-2 text-[#FAF8F5]/75">
-            <li>
-              <RouterLink to="/login" class="hover:text-white inline-flex items-center gap-1.5">
-                <Lock class="w-3.5 h-3.5 text-[#D9826C]" />
-                <span>Acceso Alumnos / Admin</span>
-              </RouterLink>
-            </li>
-            <li><RouterLink to="/aviso-legal" class="hover:text-white">Aviso Legal</RouterLink></li>
-            <li><RouterLink to="/privacidad" class="hover:text-white">Política de Privacidad</RouterLink></li>
-            <li><RouterLink to="/cookies" class="hover:text-white">Política de Cookies</RouterLink></li>
-            <li>
-              <button
-                type="button"
-                class="text-xs text-[#FAF8F5]/60 hover:text-white underline cursor-pointer text-left"
-                @click="openCookieSettings"
-              >
-                Configuración de Cookies
-              </button>
-            </li>
-          </ul>
-        </div>
+  <footer class="bg-[#2C3E35] text-[#FAF8F5]/80">
+    <div class="max-w-[1200px] mx-auto px-5 sm:px-6 py-14 flex flex-wrap justify-between gap-8 text-sm">
+      <div class="flex flex-col gap-1.5 max-w-[360px]">
+        <span class="font-editorial text-2xl font-semibold text-[#FAF8F5]">Carla Viladot</span>
+        <span>Psicóloga General Sanitaria · Col. 29332</span>
+        <span>Terapia online para toda España · Castellano y catalán</span>
+        <span class="mt-4 text-xs text-[#FAF8F5]/55">© {{ new Date().getFullYear() }} Carla Viladot Fonseca · NIF 49255948E</span>
       </div>
-
-      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#FAF8F5]/60 gap-4">
-        <p>
-          © {{ new Date().getFullYear() }} Vuelve a Ti · Carla Viladot Fonseca (NIF 49255948E · Col. 29332). Todos los
-          derechos reservados.
-        </p>
-        <div class="flex items-center gap-5">
-          <a
-            href="https://www.instagram.com/carlaviladot.psicologa/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-1.5 hover:text-white transition-colors"
-          >
-            <Instagram class="w-4 h-4 text-[#D9826C]" />
-            <span>Instagram</span>
-          </a>
+      <nav aria-label="Pie" class="flex flex-wrap gap-12">
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-bold tracking-[0.1em] uppercase text-[#F2B8A6]">Servicios</span>
+          <RouterLink to="/programa-vuelve-a-ti" class="text-[#FAF8F5] hover:underline">Programa Vuelve a Ti</RouterLink>
+          <RouterLink to="/terapia-online" class="text-[#FAF8F5] hover:underline">Terapia online</RouterLink>
+          <RouterLink to="/recursos" class="text-[#FAF8F5] hover:underline">Recursos gratuitos</RouterLink>
         </div>
-      </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-bold tracking-[0.1em] uppercase text-[#F2B8A6]">Carla</span>
+          <RouterLink to="/sobre-mi" class="text-[#FAF8F5] hover:underline">Sobre mí</RouterLink>
+          <RouterLink to="/contacto" class="text-[#FAF8F5] hover:underline">Contacto</RouterLink>
+          <a :href="WHATSAPP_URL" target="_blank" rel="noopener noreferrer" class="text-[#FAF8F5] hover:underline">WhatsApp</a>
+          <a href="https://www.instagram.com/carlaviladot.psicologa/" target="_blank" rel="noopener noreferrer" class="text-[#FAF8F5] hover:underline">Instagram</a>
+          <RouterLink to="/login" class="text-[#FAF8F5] hover:underline">Acceso alumnos</RouterLink>
+        </div>
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-bold tracking-[0.1em] uppercase text-[#F2B8A6]">Legal</span>
+          <RouterLink to="/aviso-legal" class="text-[#FAF8F5] hover:underline">Aviso legal</RouterLink>
+          <RouterLink to="/privacidad" class="text-[#FAF8F5] hover:underline">Privacidad</RouterLink>
+          <RouterLink to="/cookies" class="text-[#FAF8F5] hover:underline">Cookies</RouterLink>
+          <button type="button" class="text-left text-[#FAF8F5]/70 hover:text-[#FAF8F5] underline cursor-pointer" @click="openCookieSettings">
+            Configurar cookies
+          </button>
+        </div>
+      </nav>
     </div>
   </footer>
+  <WhatsAppButton />
 </template>

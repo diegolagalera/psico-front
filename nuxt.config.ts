@@ -51,7 +51,11 @@ export default defineNuxtConfig({
       },
     },
     '/images/**': { headers: { 'Cache-Control': 'public, max-age=2592000' } },
-    '/': { prerender: true },
+    // Portada: se pinta en el servidor (con caché) porque muestra los últimos recursos
+    '/': { swr: 600 },
+    '/programa-vuelve-a-ti': { prerender: true },
+    '/sobre-mi': { prerender: true },
+    '/contacto': { prerender: true },
     '/terapia-online': { prerender: true },
     '/aviso-legal': { prerender: true },
     '/privacidad': { prerender: true },
@@ -60,6 +64,7 @@ export default defineNuxtConfig({
     '/recursos/**': { swr: 300 },
 
     '/terapia': { redirect: { to: '/terapia-online', statusCode: 301 } },
+    '/programa': { redirect: { to: '/programa-vuelve-a-ti', statusCode: 301 } },
 
     '/login': { ssr: false, headers: NOINDEX },
     '/dashboard': { ssr: false, headers: NOINDEX },
@@ -74,7 +79,7 @@ export default defineNuxtConfig({
     prerender: {
       // Solo las rutas fijas de routeRules; no seguir enlaces a /recursos/** (dinámicos)
       crawlLinks: false,
-      routes: ['/', '/terapia-online', '/aviso-legal', '/privacidad', '/cookies'],
+      routes: ['/programa-vuelve-a-ti', '/terapia-online', '/sobre-mi', '/contacto', '/aviso-legal', '/privacidad', '/cookies'],
     },
   },
 

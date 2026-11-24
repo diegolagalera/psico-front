@@ -26,7 +26,7 @@ const pillars = [
 ]
 
 const phrases = [
-  ['«Mi cabeza ', 'no para', ', ni siquiera cuando estoy tranquila.»'],
+  ['«Mi cabeza ', 'no para', ', ni siquiera cuando todo está en calma.»'],
   ['«Siempre acabo en ', 'el mismo tipo de relación', '.»'],
   ['«Me cuesta ', 'poner límites', ' sin sentirme culpable.»'],
   ['«Hay cosas de ', 'mi pasado', ' que todavía me pesan.»'],
@@ -45,7 +45,7 @@ const topics = [
 ]
 
 const steps = [
-  { n: '01', title: 'Rellena el formulario', text: 'Cuéntame brevemente qué te trae y me pondré en contacto contigo en menos de 24 horas.' },
+  { n: '01', title: 'Rellena el formulario', text: 'Cuéntame brevemente qué te trae y te escribo por WhatsApp en menos de 24 horas.' },
   { n: '02', title: 'Primera sesión', text: 'Exploramos qué te trae, tu historia y qué te gustaría que cambiara.' },
   { n: '03', title: 'Tu proceso', text: 'Sesiones por videollamada de 50–55 minutos, con la frecuencia que acordemos.' },
 ]
@@ -87,6 +87,10 @@ const faqs = [
     q: '¿Dónde se hacen las sesiones?',
     a: 'Las sesiones son 100% online: no hago terapia presencial. Nos vemos por Google Meet, sin necesidad de descargar nada, y 24 horas antes de la sesión te envío por WhatsApp el enlace para entrar. Así puedes hacer terapia desde donde estés.',
   },
+  {
+    q: '¿Cómo se pagan las sesiones?',
+    a: 'Por Bizum o transferencia bancaria, como mínimo 24 horas antes de la sesión.',
+  },
 ]
 
 const scheduleOptions = [
@@ -127,7 +131,7 @@ async function submitForm() {
     await api.post('/therapy-request', { ...form })
     submitted.value = true
     Object.assign(form, emptyForm())
-    toast.success('He recibido tu solicitud. Te respondo en menos de 24 horas.', {
+    toast.success('He recibido tu solicitud. Te escribo por WhatsApp en menos de 24 horas.', {
       title: 'Solicitud enviada',
     })
   } catch (err) {
@@ -212,8 +216,7 @@ async function submitForm() {
             <div class="flex flex-col gap-3.5 pt-3 pb-2">
               <span aria-hidden="true" class="w-14 h-0.5 bg-[#C0674F]"></span>
               <p class="m-0 font-editorial italic font-semibold text-3xl sm:text-4xl leading-[1.2] tracking-tight">
-                Tus relaciones también pueden ser un lugar seguro.<br />
-                <span class="text-[#A9553F]">Empezando por la que tienes contigo.</span>
+                Querer <span class="text-[#A9553F]">no debería doler así.</span>
               </p>
             </div>
           </div>
@@ -330,6 +333,10 @@ async function submitForm() {
                 Para parejas que se quieren pero se están alejando, discuten siempre por lo mismo o sienten que ya no
                 se entienden.
               </p>
+              <p class="m-0 text-sm leading-relaxed text-[#2C3E35]/75">
+                Trabajamos la comunicación y los conflictos que se repiten, la infidelidad y la pérdida de confianza, la
+                reconexión del vínculo y el bajo deseo sexual.
+              </p>
               <p class="m-0 text-sm text-[#4A6B5D] font-semibold">70 € · 50–55 min</p>
               <a href="#reservar" class="mt-auto bg-[#A9553F] hover:bg-[#8f4533] text-white font-semibold text-sm px-5 py-3 rounded-2xl transition-colors">
                 Reservar sesión
@@ -347,7 +354,7 @@ async function submitForm() {
               </p>
               <p class="m-0 text-sm text-[#F2B8A6] font-semibold">10 semanas · con valoración gratuita previa</p>
               <RouterLink
-                to="/#el-programa"
+                to="/programa-vuelve-a-ti"
                 class="mt-auto text-sm font-semibold text-[#FAF8F5] underline underline-offset-4 hover:text-white"
               >
                 Conocer el programa
@@ -448,7 +455,7 @@ async function submitForm() {
               No hace falta que lo tengas todo claro para empezar.
             </h2>
             <p class="m-0 text-[17px] leading-[1.7] text-[#2C3E35]/85">
-              Basta con que quieras entender lo que te pasa. Rellena el formulario y te escribo en menos de 24 horas.
+              Basta con que quieras entender lo que te pasa. Rellena el formulario y te escribo por WhatsApp en menos de 24 horas.
             </p>
             <a
               href="#reservar"
@@ -474,8 +481,8 @@ async function submitForm() {
           <div class="flex-[1_1_340px] min-w-0 flex flex-col gap-5">
             <h2 class="m-0 font-semibold text-4xl sm:text-5xl leading-[1.1]">Reserva tu sesión</h2>
             <p class="m-0 text-[17px] leading-[1.7] text-[#2C3E35]/85">
-              Cuéntame un poco sobre ti y lo que te trae. Leo cada mensaje personalmente y te respondo
-              <strong class="text-[#2C3E35]">en menos de 24 horas</strong> por email.
+              Cuéntame un poco sobre ti y lo que te trae. Leo cada mensaje personalmente y te escribo por WhatsApp
+              <strong class="text-[#2C3E35]">en menos de 24 horas</strong>.
             </p>
             <ul class="m-0 p-0 list-none flex flex-col gap-3 text-[15px] text-[#2C3E35]/85">
               <li class="flex gap-2.5 items-center"><Check class="w-[18px] h-[18px] text-[#D9826C] shrink-0" aria-hidden="true" />Sesiones 100% online por Google Meet</li>
@@ -483,10 +490,6 @@ async function submitForm() {
               <li class="flex gap-2.5 items-center"><Check class="w-[18px] h-[18px] text-[#D9826C] shrink-0" aria-hidden="true" />En castellano o en catalán</li>
               <li class="flex gap-2.5 items-center"><Check class="w-[18px] h-[18px] text-[#D9826C] shrink-0" aria-hidden="true" />Todo lo que escribas es confidencial</li>
             </ul>
-            <p class="mt-2 mb-0 text-[13px] leading-relaxed text-[#2C3E35]/75">
-              Si estás en una situación de crisis o riesgo, no esperes: llama al <strong>024</strong> (atención a la
-              conducta suicida) o al <strong>112</strong>.
-            </p>
           </div>
 
           <div
@@ -499,8 +502,7 @@ async function submitForm() {
             </span>
             <h3 class="m-0 font-semibold text-3xl">Gracias, he recibido tu solicitud</h3>
             <p class="m-0 text-[17px] leading-[1.7] text-[#2C3E35]/85">
-              Te escribiré por email en menos de 24 horas para concretar tu primera sesión. Revisa también la carpeta
-              de spam por si acaso.
+              Te escribiré por WhatsApp en menos de 24 horas para concretar tu primera sesión.
             </p>
             <button
               type="button"
@@ -534,19 +536,10 @@ async function submitForm() {
               </div>
             </fieldset>
 
-            <fieldset class="border-0 m-0 p-0 flex flex-col gap-3">
-              <legend class="text-sm font-semibold mb-1">Modalidad *</legend>
-              <p class="m-0 text-[13px] leading-relaxed text-[#2C3E35]/75">
-                Las sesiones son <strong class="text-[#A9553F]">100% online</strong> por Google Meet. No hago terapia
-                presencial.
-              </p>
-              <div class="flex flex-wrap gap-2.5">
-                <label class="therapy-chip">
-                  <input v-model="form.online_confirmed" type="checkbox" name="modalidad" required class="accent-[#A9553F]" />
-                  Online
-                </label>
-              </div>
-            </fieldset>
+            <label class="flex items-start gap-2.5 text-sm leading-normal text-[#2C3E35]/85">
+              <input v-model="form.online_confirmed" type="checkbox" name="modalidad" required class="accent-[#A9553F] mt-0.5" />
+              <span>Entiendo que las sesiones son <strong class="text-[#A9553F]">100% online</strong> por Google Meet (no hay terapia presencial). *</span>
+            </label>
 
             <fieldset class="border-0 m-0 p-0 flex flex-col gap-3">
               <legend class="text-sm font-semibold mb-2.5">Tipo de terapia *</legend>
@@ -596,8 +589,7 @@ async function submitForm() {
                 Idioma de las sesiones
                 <select v-model="form.language" name="idioma" class="therapy-input">
                   <option>Castellano</option>
-                  <option>Català</option>
-                  <option>Me da igual</option>
+                  <option>Catalán</option>
                 </select>
               </label>
               <label class="flex flex-col gap-1.5 text-sm font-semibold">

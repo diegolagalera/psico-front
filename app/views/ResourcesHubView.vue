@@ -5,7 +5,6 @@ import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/composables/useToast'
 import {
-  Feather,
   Sparkles,
   BookOpen,
   FileText,
@@ -28,9 +27,10 @@ import {
   ExternalLink,
   Share2,
   Cookie,
-  Menu,
 } from 'lucide-vue-next'
 import { useCookieConsent } from '@/composables/useCookieConsent'
+import SiteHeader from '@/components/SiteHeader.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
 // pdf.js solo se descarga y ejecuta en el navegador cuando se abre un PDF
 const PdfViewer = defineAsyncComponent(() => import('@/components/PdfViewer.vue'))
 
@@ -46,7 +46,6 @@ const currentResource = ref(null)
 const relatedResources = ref([])
 const searchQuery = ref('')
 const selectedCategory = ref('Todas')
-const mobileMenuOpen = ref(false)
 
 // Estado del Lead guardado en caché del navegador (localStorage)
 const cachedLead = ref(null)
@@ -359,12 +358,6 @@ function getYoutubeEmbedUrl(url) {
 }
 
 
-watch(
-  () => route.fullPath,
-  () => {
-    mobileMenuOpen.value = false
-  }
-)
 
 onMounted(() => {
   // El HTML del servidor llega sin desbloquear; si este navegador ya tiene acceso,
@@ -377,160 +370,40 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-[#FAF8F5] text-[#2C3E35] flex flex-col overflow-x-hidden">
-    <!-- =====================================================
-         1. HEADER / NAVBAR EDITORIAL RESPONSIVE
-         ===================================================== -->
-    <header
-      class="sticky top-0 z-40 w-full bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#2C3E35]/10"
+    <SiteHeader />
+
+    <!-- Barra de la biblioteca: volver al listado y correo recordado en este navegador -->
+    <div
+      v-if="isDetailMode || cachedLead?.email"
+      class="w-full bg-[#F3EFEA] border-b border-[#EAE4DC]"
     >
-      <div
-        class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-3"
-      >
-        <!-- Logo -->
-        <RouterLink to="/" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-          <div
-            class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#4A6B5D] text-[#FAF8F5] flex items-center justify-center shadow-xs group-hover:bg-[#24332B] transition-colors shrink-0"
-          >
-            <Feather class="w-5 h-5" />
-          </div>
-          <div>
-            <span
-              class="font-editorial text-xl sm:text-2xl font-semibold tracking-tight text-[#24332B] block leading-none"
-            >
-              Vuelve a Ti
-            </span>
-            <span
-              class="text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.18em] text-[#4A6B5D] font-bold block mt-1"
-            >
-              Recursos Gratuitos
-            </span>
-          </div>
+      <div class="max-w-[1200px] mx-auto px-5 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <RouterLink
+          v-if="isDetailMode"
+          to="/recursos"
+          class="inline-flex items-center gap-1.5 font-semibold text-[#2C3E35] hover:text-[#4A6B5D]"
+        >
+          <ArrowLeft class="w-3.5 h-3.5 shrink-0" />
+          <span>Todos los recursos</span>
         </RouterLink>
-
-        <!-- Navegación Escritorio (md+) -->
-        <div class="hidden md:flex items-center gap-2.5 sm:gap-3 shrink-0">
-          <!-- Indicador de correo recordado en caché del navegador -->
-          <div
-            v-if="cachedLead?.email"
-            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-600/20 text-emerald-900 text-xs font-medium whitespace-nowrap"
-            title="Tu correo ya está verificado en este navegador. Tienes acceso directo a todos los recursos."
-          >
-            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <span class="truncate max-w-[180px]">{{ cachedLead.email }}</span>
-            <button
-              type="button"
-              @click="clearCachedLead"
-              class="text-[10px] text-emerald-800/60 hover:text-emerald-950 underline ml-1 cursor-pointer"
-            >
-              Cambiar
-            </button>
-          </div>
-
-          <RouterLink
-            v-if="isDetailMode"
-            to="/recursos"
-            class="whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-[#2C3E35]/12 text-[#24332B] hover:bg-[#2C3E35]/5 transition-colors"
-          >
-            <ArrowLeft class="w-3.5 h-3.5 shrink-0" />
-            <span>Todos los Recursos</span>
-          </RouterLink>
-
-          <RouterLink
-            to="/"
-            class="whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-[#4A6B5D] hover:bg-[#4A6B5D]/10 transition-colors"
-          >
-            <span>Web Principal</span>
-          </RouterLink>
-
-          <RouterLink
-            to="/terapia-online"
-            class="whitespace-nowrap inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-[#4A6B5D] hover:bg-[#4A6B5D]/10 transition-colors"
-          >
-            <span>Terapia</span>
-          </RouterLink>
-
-          <RouterLink
-            :to="authStore.isAuthenticated ? (authStore.isAdmin ? '/admin/resources' : '/dashboard') : '/login'"
-            class="whitespace-nowrap inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-semibold bg-[#24332B] text-white hover:bg-[#4A6B5D] transition-colors"
-          >
-            <Lock class="w-3.5 h-3.5 text-[#D9826C] shrink-0" />
-            <span>{{ authStore.isAuthenticated ? (authStore.isAdmin ? 'Editar Recursos' : 'Mi Campus') : 'Acceso Alumnos' }}</span>
-          </RouterLink>
-        </div>
-
-        <!-- Controles Móvil (< md) -->
-        <div class="flex md:hidden items-center gap-2 shrink-0">
-          <RouterLink
-            v-if="isDetailMode"
-            to="/recursos"
-            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white border border-[#2C3E35]/12 text-[#24332B]"
-          >
-            <ArrowLeft class="w-3.5 h-3.5" />
-            <span>Foro</span>
-          </RouterLink>
-
-          <button
-            type="button"
-            @click="mobileMenuOpen = !mobileMenuOpen"
-            class="p-2 rounded-xl text-[#2C3E35] hover:bg-[#4A6B5D]/10 transition-colors cursor-pointer"
-            aria-label="Abrir menú"
-          >
-            <Menu v-if="!mobileMenuOpen" class="w-6 h-6" />
-            <X v-else class="w-6 h-6" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Menú Desplegable Móvil -->
-      <div
-        v-if="mobileMenuOpen"
-        class="md:hidden bg-[#FAF8F5] border-b border-[#2C3E35]/10 px-5 py-4 space-y-3 shadow-lg"
-      >
-        <!-- Si tiene email en caché -->
+        <span v-else></span>
         <div
           v-if="cachedLead?.email"
-          class="flex items-center justify-between p-3 rounded-2xl bg-emerald-500/10 border border-emerald-600/20 text-emerald-900 text-xs"
+          class="inline-flex items-center gap-2 text-[#2C3E35]/80 min-w-0"
+          title="Tu correo ya está verificado en este navegador. Tienes acceso directo a todos los recursos."
         >
-          <div class="flex items-center gap-2 min-w-0">
-            <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
-            <span class="truncate font-medium">{{ cachedLead.email }}</span>
-          </div>
+          <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span class="truncate max-w-[200px]">{{ cachedLead.email }}</span>
           <button
             type="button"
             @click="clearCachedLead"
-            class="text-xs text-emerald-800 underline ml-2 shrink-0 cursor-pointer"
+            class="underline text-[#2C3E35]/60 hover:text-[#2C3E35] cursor-pointer"
           >
             Cambiar
           </button>
         </div>
-
-        <RouterLink
-          to="/"
-          @click="mobileMenuOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2C3E35] hover:text-[#4A6B5D]"
-        >
-          Ir a la Web Principal
-        </RouterLink>
-
-        <RouterLink
-          v-if="isDetailMode"
-          to="/recursos"
-          @click="mobileMenuOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2C3E35] hover:text-[#4A6B5D]"
-        >
-          Ver Todos los Recursos
-        </RouterLink>
-
-        <RouterLink
-          :to="authStore.isAuthenticated ? (authStore.isAdmin ? '/admin/resources' : '/dashboard') : '/login'"
-          @click="mobileMenuOpen = false"
-          class="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl text-xs font-semibold bg-[#24332B] text-white hover:bg-[#4A6B5D] transition-colors mt-2"
-        >
-          <Lock class="w-3.5 h-3.5 text-[#D9826C] shrink-0" />
-          <span>{{ authStore.isAuthenticated ? (authStore.isAdmin ? 'Panel de Administración' : 'Mi Campus') : 'Acceso Alumnos' }}</span>
-        </RouterLink>
       </div>
-    </header>
+    </div>
 
     <!-- =====================================================
          ESTADO CARGANDO
@@ -560,18 +433,18 @@ onMounted(() => {
         <div
           class="relative z-10 max-w-3xl space-y-4"
         >
-          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-[#D9826C]">
-            <Instagram class="w-3.5 h-3.5" />
-            <span>Biblioteca Oficial de Recursos de Instagram & Web</span>
-          </div>
-
-          <h1 class="font-editorial text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
-            Guías clínicas, cuadernos prácticos y herramientas para volver a ti.
+          <h1 class="m-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-white/20 !font-sans text-xs font-semibold tracking-[0.12em] uppercase text-[#E6EFE9]">
+            Recursos gratuitos para cuidarte tras una ruptura
           </h1>
 
+          <p class="m-0 font-editorial text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
+            No tienes que esperar a empezar terapia para <em class="text-[#F2B8A6]">empezar a cuidarte.</em>
+          </p>
+
           <p class="text-sm sm:text-base text-[#FAF8F5]/80 leading-relaxed max-w-2xl">
-            Aquí encontrarás todos los recursos descargables, ejercicios escritos y protocolos terapéuticos que comparto en mis Reels.
-            <strong class="text-white font-semibold">Desbloquea cualquier recurso gratis con tu correo electrónico</strong> y tendrás llave maestra automática para toda la biblioteca desde tu navegador.
+            Ejercicios para calmar la ansiedad, guías para mantener el contacto cero y recursos para entender por qué te
+            cuesta tanto soltar. Los preparo a partir de lo que trabajo en consulta y son gratis.
+            <strong class="text-white font-semibold">Déjame tu email una vez y podrás abrirlos todos.</strong>
           </p>
 
           <!-- Banner si ya está reconocido en caché -->
@@ -1231,31 +1104,7 @@ onMounted(() => {
       </section>
     </main>
 
-    <!-- Footer de la biblioteca -->
-    <footer class="mt-16 bg-[#24332B] text-[#FAF8F5] py-12 border-t border-white/10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-6 pb-6 border-b border-white/10 text-xs">
-          <div class="flex items-center gap-2">
-            <span class="font-editorial text-lg font-semibold">Vuelve a Ti</span>
-            <span class="text-white/40">·</span>
-            <span class="text-white/70">Biblioteca de Recursos Terapéuticos</span>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-center gap-5 text-white/80">
-            <RouterLink to="/" class="hover:text-white">Inicio</RouterLink>
-            <RouterLink to="/recursos" class="hover:text-white">Recursos</RouterLink>
-            <RouterLink to="/aviso-legal" class="hover:text-white">Aviso Legal</RouterLink>
-            <RouterLink to="/privacidad" class="hover:text-white">Privacidad</RouterLink>
-            <RouterLink to="/cookies" class="hover:text-white">Cookies</RouterLink>
-          </div>
-        </div>
-
-        <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-white/50 gap-3">
-          <p>© {{ new Date().getFullYear() }} Carla Viladot Fonseca · Todos los derechos reservados.</p>
-          <p>Colegio Oficial de Psicología de Cataluña (Col. 29332)</p>
-        </div>
-      </div>
-    </footer>
+    <SiteFooter />
 
     <!-- =====================================================
          MODAL VISOR DE PDF INTEGRADO EN NAVEGADOR

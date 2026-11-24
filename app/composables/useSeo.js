@@ -94,11 +94,11 @@ export function legalPageSeo(title, path) {
   return { title, canonicalPath: path, robots: 'index, follow' }
 }
 
-export function landingSeo() {
-  const title =
-    'Vuelve a Ti · Terapia Ruptura de Pareja | Carla Viladot'
+export function programaSeo() {
+  const pageUrl = `${SITE_URL}/programa-vuelve-a-ti`
+  const title = 'Superar una ruptura de pareja: programa de 10 semanas | Carla Viladot'
   const description =
-    'Programa clínico de 10 semanas para superar tu ruptura de pareja, calmar la ansiedad y sostener el contacto cero. Carla Viladot, Psicóloga (Col. 29332).'
+    'Programa de 10 semanas con psicóloga para superar tu ruptura, calmar la ansiedad y sostener el contacto cero. Empieza con una valoración gratuita.'
   const keywords =
     'terapia ruptura de pareja, psicóloga ruptura amorosa, cómo superar una ruptura de pareja, duelo amoroso, contacto cero psicología, ansiedad tras ruptura, apego ansioso, dependencia emocional, Carla Viladot psicóloga, programa Vuelve a Ti'
 
@@ -142,10 +142,11 @@ export function landingSeo() {
       },
       {
         '@type': 'Course',
-        '@id': `${SITE_URL}/#programa-vuelve-a-ti`,
+        '@id': `${pageUrl}#programa`,
+        url: pageUrl,
         name: 'Programa Vuelve a Ti · Terapia y Acompañamiento para Superar tu Ruptura',
         description:
-          'Acompañamiento terapéutico intensivo de 10 semanas combinando sesiones individuales 1:1, módulos clínicos en vídeo y cuadernos prácticos basados en neurobiología, apego e IFS.',
+          'Acompañamiento terapéutico intensivo de 10 semanas combinando sesiones individuales 1:1, vídeos y cuadernos prácticos basados en el apego, la regulación del sistema nervioso e IFS.',
         provider: {
           '@id': `${SITE_URL}/#organization`,
         },
@@ -157,15 +158,22 @@ export function landingSeo() {
         },
       },
       {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Programa Vuelve a Ti', item: pageUrl },
+        ],
+      },
+      {
         '@type': 'FAQPage',
-        '@id': `${SITE_URL}/#faq`,
+        '@id': `${pageUrl}#faq`,
         mainEntity: [
           {
             '@type': 'Question',
             name: '¿Cómo funciona el programa terapéutico Vuelve a Ti para superar una ruptura de pareja?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Es un acompañamiento clínico de 10 semanas estructurado en 3 fases (Regulación del sistema nervioso, Comprensión de patrones de apego e IFS, e Integración de autoestima y límites) que combina sesiones individuales con Carla Viladot (Psicóloga Sanitaria Col. 29332), contenido clínico en vídeo 24/7 y cuadernos de trabajo prácticos.',
+              text: 'Son 10 semanas en 3 fases (regulación, comprensión e integración) que combinan sesiones individuales con Carla Viladot, psicóloga sanitaria (Col. 29332), vídeos disponibles 24/7 y cuadernos de trabajo prácticos.',
             },
           },
           {
@@ -173,7 +181,7 @@ export function landingSeo() {
             name: '¿Por qué no consigo mantener el contacto cero ni dejar de pensar en mi ex?',
             acceptedAnswer: {
               '@type': 'Answer',
-              text: 'Tras una ruptura de pareja, el cerebro experimenta un síndrome de abstinencia neuroquímico que activa la hipervigilancia y la rumiación nocturna. En el programa trabajamos la regulación somática de tu sistema nervioso y las heridas de apego para frenar el bucle mental sin depender solo de la fuerza de voluntad.',
+              text: 'Tras una ruptura, el cerebro vive algo parecido a una abstinencia que activa la alerta y la rumiación. Por eso trabajamos la regulación del sistema nervioso y las heridas de apego, sin depender solo de la fuerza de voluntad.',
             },
           },
           {
@@ -182,6 +190,14 @@ export function landingSeo() {
             acceptedAnswer: {
               '@type': 'Answer',
               text: 'Para garantizar que el programa es adecuado para tu caso y momento vital, el acceso requiere completar un breve cuestionario previo en la web y realizar una sesión de valoración gratuita de 30 minutos por videollamada con Carla Viladot.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: '¿Cuánto cuesta el programa Vuelve a Ti?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'El precio se concreta en la valoración gratuita de 30 minutos, una vez revisado el caso y el acompañamiento que necesita cada persona. Esa primera llamada no tiene ningún compromiso.',
             },
           },
         ],
@@ -193,7 +209,7 @@ export function landingSeo() {
     title,
     description,
     keywords,
-    canonicalPath: '/',
+    canonicalPath: '/programa-vuelve-a-ti',
     ogType: 'website',
     imageUrl: DEFAULT_IMAGE,
     jsonLd,
@@ -202,9 +218,9 @@ export function landingSeo() {
 
 export function resourcesHubSeo(resourcesList = []) {
   const title =
-    'Recursos Gratuitos para Superar tu Ruptura | Carla Viladot'
+    'Ejercicios y guías gratis tras una ruptura | Carla Viladot'
   const description =
-    'Guías clínicas gratuitas, ejercicios de contacto cero, regulación de ansiedad y cuadernos PDF para superar tu ruptura con Carla Viladot Psicóloga.'
+    'Guías, ejercicios y cuadernos gratuitos para calmar la ansiedad, mantener el contacto cero y entender por qué te cuesta soltar. Por Carla Viladot, psicóloga.'
   const keywords =
     'recursos gratuitos ruptura de pareja, guía contacto cero pdf, ejercicios superar ruptura, ansiedad tras ruptura, apego ansioso test, Carla Viladot psicóloga'
 
@@ -391,6 +407,7 @@ export function therapySeo() {
       '¿Dónde se hacen las sesiones?',
       'Las sesiones son 100% online: no hago terapia presencial. Nos vemos por Google Meet, sin necesidad de descargar nada, y 24 horas antes de la sesión te envío por WhatsApp el enlace para entrar.',
     ],
+    ['¿Cómo se pagan las sesiones?', 'Por Bizum o transferencia bancaria, como mínimo 24 horas antes de la sesión.'],
   ]
 
   const service = (id, name, desc, price) => ({
@@ -507,5 +524,149 @@ export function therapySeo() {
     canonicalPath: '/terapia-online',
     imageUrl,
     jsonLd,
+  }
+}
+
+
+/** Organización y persona: base común de los datos estructurados */
+function organizationNode(extra = {}) {
+  return {
+    '@type': ['Psychologist', 'ProfessionalService', 'MedicalBusiness'],
+    '@id': `${SITE_URL}/#organization`,
+    name: 'Carla Viladot · Psicóloga online',
+    url: `${SITE_URL}/`,
+    image: DEFAULT_IMAGE,
+    description:
+      'Psicóloga General Sanitaria (Col. 29332). Terapia online individual y de pareja y programa Vuelve a Ti para superar una ruptura: ansiedad, apego, autoestima, dependencia emocional y trauma.',
+    areaServed: { '@type': 'Country', name: 'España' },
+    availableLanguage: ['es', 'ca'],
+    priceRange: '60 € – 70 €',
+    sameAs: ['https://www.instagram.com/carlaviladot.psicologa/'],
+    founder: { '@id': `${SITE_URL}/#person` },
+    ...extra,
+  }
+}
+
+function personNode(extra = {}) {
+  return {
+    '@type': 'Person',
+    '@id': `${SITE_URL}/#person`,
+    name: 'Carla Viladot',
+    jobTitle: 'Psicóloga General Sanitaria (Col. 29332)',
+    url: `${SITE_URL}/sobre-mi`,
+    image: DEFAULT_IMAGE,
+    knowsLanguage: ['es', 'ca'],
+    knowsAbout: [
+      'Rupturas de pareja',
+      'Terapia de pareja',
+      'Dependencia emocional',
+      'Teoría del apego',
+      'Ansiedad y regulación emocional',
+      'Trauma y EMDR',
+      'Terapia de Sistemas de Familia Interna (IFS)',
+    ],
+    sameAs: ['https://www.instagram.com/carlaviladot.psicologa/'],
+    ...extra,
+  }
+}
+
+export function homeSeo() {
+  const title = 'Psicóloga online · Rupturas, ansiedad y relaciones | Carla Viladot'
+  const description =
+    'Psicóloga sanitaria online (Col. 29332). Terapia individual y de pareja para la ansiedad, el apego y las rupturas. En castellano y catalán, desde toda España.'
+  return {
+    title,
+    description,
+    keywords:
+      'psicóloga online, psicóloga rupturas, terapia de pareja online, ansiedad, dependencia emocional, apego, Carla Viladot',
+    canonicalPath: '/',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        organizationNode(),
+        personNode(),
+        {
+          '@type': 'WebSite',
+          '@id': `${SITE_URL}/#website`,
+          url: `${SITE_URL}/`,
+          name: 'Carla Viladot · Psicóloga online',
+          inLanguage: 'es',
+          publisher: { '@id': `${SITE_URL}/#organization` },
+        },
+      ],
+    },
+  }
+}
+
+export function sobreMiSeo() {
+  const pageUrl = `${SITE_URL}/sobre-mi`
+  const title = 'Sobre mí · Carla Viladot, psicóloga general sanitaria (Col. 29332)'
+  const description =
+    'Soy Carla Viladot, psicóloga general sanitaria. Acompaño online a personas y parejas desde el apego y el trauma, con IFS y EMDR. Conoce mi enfoque.'
+  return {
+    title,
+    description,
+    canonicalPath: '/sobre-mi',
+    ogType: 'profile',
+    imageUrl: `${SITE_URL}/images/terapia/carla-viladot-psicologa-terapia-online.webp`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'ProfilePage',
+          '@id': `${pageUrl}#webpage`,
+          url: pageUrl,
+          name: title,
+          inLanguage: 'es',
+          mainEntity: { '@id': `${SITE_URL}/#person` },
+        },
+        personNode({
+          hasCredential: {
+            '@type': 'EducationalOccupationalCredential',
+            credentialCategory: 'Psicóloga General Sanitaria · Col·legi Oficial de Psicologia de Catalunya (29332)',
+          },
+        }),
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: `${SITE_URL}/` },
+            { '@type': 'ListItem', position: 2, name: 'Sobre mí', item: pageUrl },
+          ],
+        },
+      ],
+    },
+  }
+}
+
+export function contactoSeo() {
+  const pageUrl = `${SITE_URL}/contacto`
+  const title = 'Contacto · Pide tu primera sesión | Carla Viladot Psicóloga online'
+  const description =
+    'Escríbeme y te respondo en menos de 24 horas. Valoración gratuita del programa Vuelve a Ti o primera sesión de terapia online individual o de pareja.'
+  return {
+    title,
+    description,
+    canonicalPath: '/contacto',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'ContactPage',
+          '@id': `${pageUrl}#webpage`,
+          url: pageUrl,
+          name: title,
+          inLanguage: 'es',
+          about: { '@id': `${SITE_URL}/#organization` },
+        },
+        organizationNode({ email: 'cviladotpsicologa@gmail.com' }),
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: `${SITE_URL}/` },
+            { '@type': 'ListItem', position: 2, name: 'Contacto', item: pageUrl },
+          ],
+        },
+      ],
+    },
   }
 }

@@ -199,12 +199,14 @@ function autoGenerateSeoFields() {
   const baseTitle = (form.value.title || '').trim()
   const cat = (form.value.category || 'Duelo Afectivo').trim()
   form.value.meta_title = `${baseTitle} | Carla Viladot Psicóloga`.slice(0, 65)
-  const rawDesc =
-    (form.value.subtitle || '').trim() ||
-    (form.value.teaser_text || '').replace(/\s+/g, ' ').trim()
+  // Espacios dobles fuera y sin punto final, para no acabar en «..» al añadir la coletilla
+  const rawDesc = ((form.value.subtitle || '').trim() || (form.value.teaser_text || ''))
+    .replace(/\s+/g, ' ')
+    .trim()
+  const descBase = rawDesc.slice(0, 120).trim().replace(/[.\s…]+$/, '')
   form.value.meta_description = (
-    rawDesc
-      ? `${rawDesc.slice(0, 120).trim()}. Descarga gratis la guía de Carla Viladot.`
+    descBase
+      ? `${descBase}. Descarga gratis la guía de Carla Viladot.`
       : `Guía práctica gratuita sobre ${baseTitle.toLowerCase()} para superar tu ruptura de pareja. Por Carla Viladot Psicóloga.`
   ).slice(0, 158)
   form.value.seo_keywords = `${baseTitle.toLowerCase()}, ${cat.toLowerCase()}, terapia ruptura de pareja, superar una ruptura, contacto cero, psicóloga ruptura amorosa, Carla Viladot`

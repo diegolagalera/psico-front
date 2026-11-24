@@ -1,7 +1,6 @@
 <script setup>
-import View from '@/views/LandingView.vue'
-
-usePageSeo(landingSeo())
+import View from '@/views/HomeView.vue'
+usePageSeo(homeSeo())
 </script>
 
 <template>

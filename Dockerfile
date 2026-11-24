@@ -1,24 +1,27 @@
-# Etapa 1: Build de Vue 3 + Vite
-FROM node:20-alpine AS build
-
+# ---------- Compilación ----------
+FROM node:24-alpine AS build
 WORKDIR /app
 
-# Permitir inyectar VITE_API_BASE_URL en tiempo de build desde Coolify
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
 RUN npm run build
 
-# Etapa 2: Servidor Nginx ligero
-FROM nginx:stable-alpine
+# ---------- Producción ----------
+FROM node:24-alpine
+WORKDIR /app
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=3000
 
-EXPOSE 80
+# Solo la salida compilada: servidor Nitro + páginas pre-generadas + estáticos
+COPY --from=build /app/.output ./.output
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:3000/robots.txt > /dev/null || exit 1
+
+CMD ["node", ".output/server/index.mjs"]

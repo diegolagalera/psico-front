@@ -1,10 +1,9 @@
 node_modules
-dist
-.git
-.gitignore
+.nuxt
+.output
+.data
+.nitro
+.cache
 .env
-.env.*
-.DS_Store
-.vscode
-.idea
 *.log
+.DS_Store
